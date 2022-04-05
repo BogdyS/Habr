@@ -1,4 +1,5 @@
 ﻿using Habr.DataAccess;
+using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Habr.ConsoleApp
@@ -9,7 +10,14 @@ namespace Habr.ConsoleApp
         {
             using (var context = new DataContext())
             {
-                await context.Database.MigrateAsync();
+                Post post = new Post()
+                {
+                    Title = "Первый Пост на Хабре",
+                    Text = "Автор:Шапошников Богдан",
+                    Created = DateTime.Now
+                };
+                await context.Posts.AddAsync(post);
+                context.SaveChanges();
             }
         }
     }
