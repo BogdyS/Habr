@@ -10,7 +10,7 @@ namespace Habr.ConsoleApp
         {
             using (var context = new DataContext())
             {
-                await context.Database.MigrateAsync();
+                await context.Database.MigrateAsync(); 
                 Post post = new Post()
                 {
                     Title = "Первый Пост на Хабре",
