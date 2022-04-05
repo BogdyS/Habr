@@ -1,16 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Habr.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Habr.DataAccess.Entities
+namespace Habr.DataAccess.Configurations
 {
-    class Post
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Text { get; set; }
-        public DateTime Created { get; set; }
-    }
-
     class PostConfiguration : IEntityTypeConfiguration<Post>
     {
         public void Configure(EntityTypeBuilder<Post> builder)

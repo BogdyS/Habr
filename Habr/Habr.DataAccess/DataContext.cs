@@ -1,11 +1,11 @@
 ﻿using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Configuration;
 
 namespace Habr.DataAccess
 {
-    class DataContext : DbContext
+    public class DataContext : DbContext
     {
         public static readonly ILoggerFactory ConsoleLoggerFactory =
             LoggerFactory.Create(builder =>
@@ -15,10 +15,18 @@ namespace Habr.DataAccess
             });
 
         public DbSet<Post> Posts { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(ConsoleLoggerFactory);
-            optionsBuilder.UseSqlServer(new ConfigurationManager().GetConnectionString("HabrDatabase") );
+            try
+            {
+                optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings["HabrDatabase"].ConnectionString);
+            }
+            catch (NullReferenceException ex)
+            {
+                optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings[0].ConnectionString);
+            }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
