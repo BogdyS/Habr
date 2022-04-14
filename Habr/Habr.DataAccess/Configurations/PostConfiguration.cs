@@ -19,6 +19,14 @@ namespace Habr.DataAccess.Configurations
                 .HasMaxLength(500);
             builder.Property(x => x.Created)
                 .IsRequired();
+            builder.Property(x => x.UserId)
+                .IsRequired();
+
+            builder.HasOne(x => x.User)
+                .WithMany(x => x.Posts)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.ClientCascade)
+                .IsRequired();
         }
     }
 }

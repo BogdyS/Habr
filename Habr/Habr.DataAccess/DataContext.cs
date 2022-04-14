@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Configuration;
+using Habr.DataAccess.Configurations;
 
 namespace Habr.DataAccess
 {
@@ -15,6 +16,8 @@ namespace Habr.DataAccess
             });
 
         public DbSet<Post> Posts { get; set; }
+        public DbSet<User> Users { get; set; }
+        public  DbSet<Comment> Comments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -30,8 +33,9 @@ namespace Habr.DataAccess
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(Post).Assembly);
+            modelBuilder.ApplyConfiguration(new PostConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new CommentConfiguration());
         }
     }
 }
