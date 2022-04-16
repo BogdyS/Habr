@@ -1,7 +1,8 @@
 ﻿using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Configuration;
+using Habr.DataAccess.Configurations;
+using Microsoft.Extensions.Configuration;
 
 namespace Habr.DataAccess
 {
@@ -14,24 +15,21 @@ namespace Habr.DataAccess
                 builder.SetMinimumLevel(LogLevel.Information);
             });
 
+        private static readonly IConfiguration configuration =
+            new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
         public DbSet<Post> Posts { get; set; }
+        public DbSet<User> Users { get; set; }
+        public  DbSet<Comment> Comments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(ConsoleLoggerFactory);
-            try
-            {
-                optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings["HabrDatabase"].ConnectionString);
-            }
-            catch (NullReferenceException ex)
-            {
-                optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings[0].ConnectionString);
-            }
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("HabrDatabase"));
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(Post).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(PostConfiguration).Assembly);
         }
     }
 }
