@@ -23,8 +23,9 @@ namespace Habr.DataAccess.Configurations
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Posts)
                 .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.ClientCascade)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+
         }
     }
 }

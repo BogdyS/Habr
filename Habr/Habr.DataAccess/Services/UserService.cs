@@ -21,7 +21,7 @@ namespace Habr.DataAccess.Servises
             }
         }
 
-        public async void Register(User newUser)
+        public async Task Register(User newUser)
         {
             using (var context = new DataContext())
             {
