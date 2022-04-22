@@ -1,17 +1,18 @@
 ﻿using Habr.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Habr.DataAccess.Servises
 {
     public class UserService
     {
-        public User Login(string email, string password)
+        public async Task<User> Login(string email, string password)
         {
             using (var context = new DataContext())
             {
                 try
                 {
-                    User user = context.Users
-                        .Single(u => u.Email.Equals(email) && u.Password.Equals(password));
+                    User user = await context.Users
+                        .SingleAsync(u => u.Email.Equals(email) && u.Password.Equals(password));
                     return user;
                 }
                 catch (InvalidOperationException exception)
@@ -21,18 +22,20 @@ namespace Habr.DataAccess.Servises
             }
         }
 
-        public async Task Register(User newUser)
+        public async Task Register(string name, string email, string password)
         {
             using (var context = new DataContext())
             {
-                int users = context.Users
-                    .Select(u => u.Email)
-                    .Count(u => u == newUser.Email);
-                if (users > 0)
+                if (await context.Users.AnyAsync(x => x.Email == email))
                 {
                     throw new LoginException("Email is not unique");
                 }
-                await context.Users.AddAsync(newUser);
+                await context.Users.AddAsync(new User()
+                {
+                    Email = email,
+                    Password = password,
+                    Name = name
+                });
                 await context.SaveChangesAsync();
             }
         }
