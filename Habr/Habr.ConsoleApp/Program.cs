@@ -1,6 +1,5 @@
-﻿using Habr.DataAccess;
-using Habr.DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Habr.DataAccess.Entities;
+using Habr.DataAccess.Servises;
 
 namespace Habr.ConsoleApp
 {
@@ -8,10 +7,6 @@ namespace Habr.ConsoleApp
     {
         async static Task Main(string[] args)
         {
-            using (var context = new DataContext())
-            {
-                await context.Database.MigrateAsync();
-            }
         }
     }
 }
