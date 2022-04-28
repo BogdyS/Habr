@@ -1,4 +1,4 @@
-﻿namespace Habr.DataAccess;
+﻿namespace Habr.Common.Exceptions;
 
 public class LoginException : Exception
 {

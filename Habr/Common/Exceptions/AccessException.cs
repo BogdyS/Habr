@@ -1,4 +1,4 @@
-﻿namespace Habr.DataAccess.Exceptions
+﻿namespace Habr.Common.Exceptions
 {
     public class AccessException : Exception
     {

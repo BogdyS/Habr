@@ -1,7 +1,4 @@
-﻿using Habr.DataAccess.Entities;
-using Habr.DataAccess.Servises;
-
-namespace Habr.ConsoleApp
+﻿namespace Habr.ConsoleApp
 {
     class Program
     {
