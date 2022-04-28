@@ -19,6 +19,9 @@ namespace Habr.DataAccess.Configurations
                 .HasMaxLength(2000);
             builder.Property(x => x.Created)
                 .IsRequired();
+            builder.Property(x => x.Updated);
+            builder.Property(x => x.IsDraft)
+                .IsRequired();
 
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Posts)

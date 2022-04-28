@@ -1,4 +1,5 @@
-﻿using Habr.Common.Exceptions;
+﻿using Habr.BusinessLogic.Validation;
+using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ namespace Habr.BusinessLogic.Servises
 
                 if (user.Password != password)
                 {
-                    throw new LoginException("No user found");
+                    throw new LoginException("Wrong Email or password");
                 }
 
                 return user;
@@ -31,6 +32,11 @@ namespace Habr.BusinessLogic.Servises
         {
             using (var context = new DataContext())
             {
+                if (!EmailValidation.IsValidEmail(email))
+                {
+                    throw new LoginException("Email is not valid");
+                }
+
                 if (await IsEmailTakenAsync(email, context))
                 {
                     throw new LoginException("Email is already taken");
