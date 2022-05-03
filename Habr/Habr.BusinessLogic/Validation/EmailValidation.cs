@@ -4,9 +4,9 @@ namespace Habr.BusinessLogic.Validation
 {
     public static class EmailValidation
     {
-        static public bool IsValidEmail(string email) 
+        public static bool IsValidEmail(string email)
         {
-            return new EmailAddressAttribute().IsValid(email);
+            return email.Length <= 200 && new EmailAddressAttribute().IsValid(email);
         }
     }
 }

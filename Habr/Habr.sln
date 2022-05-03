@@ -4,12 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.ConsoleApp", "Habr.ConsoleApp\Habr.ConsoleApp.csproj", "{61E2D4BE-1748-4144-B3C1-29A78446D5A5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C283640E-DC0F-4DE8-86C9-D065266FE98F} = {C283640E-DC0F-4DE8-86C9-D065266FE98F}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.DataAccess", "Habr.DataAccess\Habr.DataAccess.csproj", "{23A36EE5-D369-46A0-B383-5A2E5C818D8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habr.Common", "Common\Habr.Common.csproj", "{C283640E-DC0F-4DE8-86C9-D065266FE98F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.Common", "Common\Habr.Common.csproj", "{C283640E-DC0F-4DE8-86C9-D065266FE98F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habr.BusinessLogic", "Habr.BusinessLogic\Habr.BusinessLogic.csproj", "{AEE529AC-BD1D-4CB9-A464-D6C13800A0E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.BusinessLogic", "Habr.BusinessLogic\Habr.BusinessLogic.csproj", "{AEE529AC-BD1D-4CB9-A464-D6C13800A0E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

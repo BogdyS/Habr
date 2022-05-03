@@ -1,4 +1,5 @@
-﻿using Habr.BusinessLogic.Validation;
+﻿using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
@@ -7,105 +8,90 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Habr.BusinessLogic.Servises
 {
-    public class PostService
+    public class PostService : IPostService
     {
-        public async Task<List<PostListDTO>> GetAllPosts()
+        public async Task<List<PostListDTO>> GetAllPostsAsync()
         {
             using (var context = new DataContext())
             {
                 var posts = await context.Posts
                     .Where(p => !p.IsDraft)
                     .Include(p => p.User)
+                    .Select(post => new PostListDTO()
+                    {
+                        Posted = post.Posted,
+                        Title = post.Title,
+                        UserEmail = post.User.Email
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 
-                var list = new List<PostListDTO>();
-                foreach (var post in posts)
-                {
-                    list.Add(new PostListDTO()
-                    {
-                        Created = post.Created,
-                        Title = post.Title,
-                        UserEmail = post.User.Email
-                    });
-                }
-                return list;
+                return posts;
             }
         }
-        public async Task<List<PostListDTO>> GetUserPosts(int userId)
+
+        public async Task<List<PostListDTO>> GetUserPostsAsync(int userId)
         {
             using (var context = new DataContext())
             {
                 var posts = await context.Posts
                     .Where(p => p.UserId == userId)
                     .Where(p => !p.IsDraft)
+                    .Select(post => new PostListDTO()
+                    {
+                        Posted = post.Posted,
+                        Title = post.Title,
+                        UserEmail = post.User.Email
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 
-                var list = new List<PostListDTO>();
-                foreach (var post in posts)
-                {
-                    list.Add(new PostListDTO()
-                    {
-                        Created = post.Created,
-                        Title = post.Title,
-                        UserEmail = post.User.Email
-                    });
-                }
-                return list;
+                return posts;
             }
         }
 
-        public async Task<List<PostDraftDTO>> GetUserDrafts(int userId)
+        public async Task<List<PostDraftDTO>> GetUserDraftsAsync(int userId)
         {
             using (var context = new DataContext())
             {
                 var posts = await context.Posts
                     .Where(p => p.UserId == userId)
                     .Where(p => p.IsDraft)
-                    .AsNoTracking()
-                    .ToListAsync();
-                var list = new List<PostDraftDTO>();
-                foreach (var post in posts)
-                {
-                    list.Add(new PostDraftDTO()
+                    .Select(post => new PostDraftDTO()
                     {
                         Created = post.Created,
                         Title = post.Title,
-                        Updated = post.Updated ?? post.Created
-                    });
-                }
-                return list;
+                        Updated = post.Updated
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return posts;
             }
         }
-        public async Task<Post> GetPostWithComments(int postId)
+
+        public async Task<Post> GetPostWithCommentsAsync(int postId, ICommentService commentService)
         {
             using (var context = new DataContext())
             {
-                if (!await IsPostExistsAsync(postId, context))
+                Post? post = await context.Posts
+                    .Where(p => p.Id == postId)
+                    .Include(p => p.Comments)
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync();
+
+                if (post == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
 
-                Post post = await context.Posts
-                    .Where(p => p.Id == postId)
-                    .Include(p => p.Comments)
-                    .SingleAsync();
-
-                for (int i = 0; i < post.Comments.Count(); i++)
-                {
-                    Comment comment = post.Comments.ElementAt(i);
-
-                    if (comment.ParentCommentId == null)
-                    {
-                        await GetComments(comment.Id, context);
-                    }
-                }
+                post.Comments = await commentService.GetCommentsAsync(postId);
 
                 return post;
             }
         }
-        public async Task CreatePost(string? title, string? text, bool isDraft, int userId)
+
+        public async Task CreatePostAsync(string? title, string? text, bool isDraft, int userId)
         {
             using (var context = new DataContext())
             {
@@ -128,28 +114,31 @@ namespace Habr.BusinessLogic.Servises
                 {
                     throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
                 }
-
-                await context.Posts.AddAsync(new Post()
+                var dateTime = DateTime.UtcNow;
+                context.Posts.Add(new Post()
                 {
                     Text = text,
                     Title = title,
                     UserId = userId,
-                    Created = DateTime.Now,
+                    Created = dateTime,
+                    Posted =  dateTime,
+                    Updated = dateTime,
                     IsDraft = isDraft
                 });
                 await context.SaveChangesAsync();
             }
         }
-        public async Task PostDraft(int draftId, int userId)
+
+        public async Task PostFromDraftAsync(int draftId, int userId)
         {
             using (var context = new DataContext())
             {
-                if (!await IsPostExistsAsync(draftId, context))
+                Post? draft = await context.Posts.SingleOrDefaultAsync(p => p.Id == draftId);
+
+                if (draft == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
-
-                Post draft = await context.Posts.SingleAsync(p => p.Id == draftId);
 
                 if (draft.UserId != userId)
                 {
@@ -161,22 +150,26 @@ namespace Habr.BusinessLogic.Servises
                     throw new AccessException("Post is already draft");
                 }
 
+                var time = DateTime.UtcNow;
+
                 draft.IsDraft = false;
+                draft.Updated = time;
+                draft.Posted = time;
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task RemovePostToDrafts(int postId, int userId)
+        public async Task RemovePostToDraftsAsync(int postId, int userId)
         {
             using (var context = new DataContext())
             {
-                if (!await IsPostExistsAsync(postId, context))
+                Post? post = await context.Posts
+                    .SingleOrDefaultAsync(p => p.Id == postId);
+
+                if (post == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
-
-                Post post = await context.Posts
-                    .SingleAsync(p => p.Id == postId);
 
                 if (post.UserId != userId)
                 {
@@ -194,20 +187,21 @@ namespace Habr.BusinessLogic.Servises
                     throw new AccessException("User can't remove post with comments to drafts");
                 }
 
+                post.Updated = DateTime.UtcNow;
                 post.IsDraft = true;
                 await context.SaveChangesAsync();
             }
         }
-        public async Task UpdatePost(string newTitle, string newText, int postId, int userId)
+        public async Task UpdatePostAsync(string newTitle, string newText, int postId, int userId)
         {
             using (var context = new DataContext())
             {
-                if (!await IsPostExistsAsync(postId, context))
+                Post? postToUpdate = await context.Posts.SingleOrDefaultAsync(p => p.Id == postId);
+
+                if (postToUpdate == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
-
-                Post postToUpdate = await context.Posts.SingleAsync(p => p.Id == postId);
 
                 if (postToUpdate.UserId != userId)
                 {
@@ -228,21 +222,25 @@ namespace Habr.BusinessLogic.Servises
                 {
                     throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
                 }
+
                 postToUpdate.Text = newText;
                 postToUpdate.Title = newTitle;
+                postToUpdate.Updated = DateTime.UtcNow;
+
                 await context.SaveChangesAsync();
             }
         }
-        public async Task DeletePost(int postId, int userId)
+
+        public async Task DeletePostAsync(int postId, int userId)
         {
             using (var context = new DataContext())
             {
-                if (!await IsPostExistsAsync(postId, context))
+                Post? post = await context.Posts.SingleOrDefaultAsync(p => p.Id == postId);
+                
+                if (post == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
-
-                Post post = await context.Posts.SingleAsync(p => p.Id == postId);
 
                 if (post.UserId != userId)
                 {
@@ -252,23 +250,6 @@ namespace Habr.BusinessLogic.Servises
                 context.Posts.Remove(post);
                 await context.SaveChangesAsync();
             }
-        }
-        private async Task GetComments(int commentId, DataContext context)
-        {
-            Comment comment = await context.Comments
-                .Include(x => x.ParentComment)
-                .Include(x => x.Comments)
-                .Include(x => x.User)
-                .SingleAsync(x => x.Id == commentId);
-
-            for (int i = 0; i < comment.Comments.Count(); i++)
-            {
-                await GetComments(comment.Comments.ElementAt(i).Id, context);
-            }
-        }
-        private async Task<bool> IsPostExistsAsync(int postId, DataContext context)
-        {
-            return await context.Posts.AnyAsync(x => x.Id == postId);
         }
     }
 }

@@ -4,28 +4,28 @@ namespace Habr.ConsoleApp.UI
 {
     public class ConsolePostUI
     {
-        static public void OutputPostList(IEnumerable<PostListDTO> list)
+        public static void OutputPostList(IEnumerable<PostListDTO> list)
         {
             Console.Write('|' + "Title");
             Console.SetCursorPosition(201, Console.CursorTop);
             Console.Write("| " + "UserEmail");
             Console.SetCursorPosition(402, Console.CursorTop);
-            Console.Write("| " + "Created");
+            Console.Write("| " + "Posted");
             Console.SetCursorPosition(430, Console.CursorTop);
             Console.WriteLine("|");
-            foreach (var post in list.OrderBy(p=>p.Created))
+            foreach (var post in list.OrderBy(p=>p.Posted))
             {
                 Console.Write('|' + post.Title);
                 Console.SetCursorPosition(201, Console.CursorTop);
                 Console.Write("| " + post.UserEmail);
                 Console.SetCursorPosition(402, Console.CursorTop);
-                Console.Write("| " + post.Created);
+                Console.Write("| " + post.Posted);
                 Console.SetCursorPosition(430, Console.CursorTop);
                 Console.WriteLine("|");
             }
         }
 
-        static public void OutputDraftPostList(IEnumerable<PostDraftDTO> list)
+        public static void OutputDraftPostList(IEnumerable<PostDraftDTO> list)
         {
             Console.Write('|' + "Title");
             Console.SetCursorPosition(201, Console.CursorTop);

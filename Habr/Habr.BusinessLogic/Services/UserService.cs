@@ -1,4 +1,5 @@
-﻿using Habr.BusinessLogic.Validation;
+﻿using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Validation;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
@@ -6,19 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Habr.BusinessLogic.Servises
 {
-    public class UserService
+    public class UserService : IUserService
     {
-        public async Task<User> Login(string email, string password)
+        public async Task<User> LoginAsync(string email, string password)
         {
             using (var context = new DataContext())
             {
-                if (!await IsEmailTakenAsync(email, context))
+                User? user = await context.Users
+                    .SingleOrDefaultAsync(u => u.Email.Equals(email));
+
+                if (user == null)
                 {
                     throw new LoginException("Email is incorrect");
                 }
-
-                User user = await context.Users
-                    .SingleAsync(u => u.Email.Equals(email));
 
                 if (user.Password != password)
                 {
@@ -28,7 +29,8 @@ namespace Habr.BusinessLogic.Servises
                 return user;
             }
         }
-        public async Task Register(string name, string email, string password)
+
+        public async Task RegisterAsync(string name, string email, string password)
         {
             using (var context = new DataContext())
             {
@@ -37,12 +39,12 @@ namespace Habr.BusinessLogic.Servises
                     throw new LoginException("Email is not valid");
                 }
 
-                if (await IsEmailTakenAsync(email, context))
+                if (await IsEmailExistsAsync(email, context))
                 {
                     throw new LoginException("Email is already taken");
                 }
 
-                await context.Users.AddAsync(new User()
+                context.Users.Add(new User()
                 {
                     Email = email,
                     Password = password,
@@ -52,7 +54,7 @@ namespace Habr.BusinessLogic.Servises
             }
         }
 
-        public async Task<bool> IsEmailTakenAsync(string email, DataContext context)
+        private async Task<bool> IsEmailExistsAsync(string email, DataContext context)
         {
             return await context.Users.AnyAsync(x => x.Email == email);
         }

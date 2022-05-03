@@ -1,13 +1,14 @@
-﻿using Habr.Common.Exceptions;
+﻿using Habr.BusinessLogic.Interfaces;
+using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Habr.BusinessLogic.Servises
 {
-    public class CommentService
+    public class CommentService : ICommentService
     {
-        public async Task<List<Comment>> GetComments(int postId)
+        public async Task<List<Comment>> GetCommentsAsync(int postId)
         {
             using (var context = new DataContext())
             {
@@ -18,33 +19,35 @@ namespace Habr.BusinessLogic.Servises
 
                 foreach (var comment in comments)
                 {
-                    await GetComments(comment.Id, context);
+                    await GetCommentsAsync(comment.Id, context);
                 }
 
                 return comments;
             }
         }
-        public async Task CreateCommentToPost(int postId, int userId, string text)
+
+        public async Task CreateCommentToPostAsync(int postId, int userId, string text)
         {
             using (var context = new DataContext())
             {
-                if (!await context.Posts.AnyAsync(x => x.Id == postId))
+                if (!await IsPostExistsAsync(postId, context))
                 {
                     throw new SQLException("Post not found");
                 }
 
-                await context.Comments.AddAsync(new Comment()
+                context.Comments.Add(new Comment()
                 {
                     PostId = postId,
                     UserId = userId,
                     Text = text,
-                    Created = DateTime.Now,
+                    Created = DateTime.UtcNow,
                     ParentCommentId = null
                 });
                 await context.SaveChangesAsync();
             }
         }
-        public async Task CreateCommentToComment(int postId, int commentId, int userId, string text)
+
+        public async Task CreateCommentToCommentAsync(int postId, int commentId, int userId, string text)
         {
             using (var context = new DataContext())
             {
@@ -58,28 +61,28 @@ namespace Habr.BusinessLogic.Servises
                     throw new SQLException("Comment not found");
                 }
 
-                await context.Comments.AddAsync(new Comment()
+                context.Comments.Add(new Comment()
                 {
                     PostId = postId,
                     UserId = userId,
                     Text = text,
-                    Created = DateTime.Now,
+                    Created = DateTime.UtcNow,
                     ParentCommentId = commentId
                 });
                 await context.SaveChangesAsync();
             }
         }
-        public async Task DeleteComment(int commentId, int userId)
+
+        public async Task DeleteCommentAsync(int commentId, int userId)
         {
             using (var context = new DataContext())
             {
-                if (!await IsCommentExistsAsync(commentId, context))
+                Comment? comment = await context.Comments.SingleOrDefaultAsync(c => c.Id == commentId);
+
+                if (comment == null)
                 {
                     throw new SQLException("Comment not found");
                 }
-
-                Comment comment = await context.Comments.SingleAsync(c => c.Id == commentId);
-                ;
 
                 if (comment.UserId != userId)
                 {
@@ -90,23 +93,31 @@ namespace Habr.BusinessLogic.Servises
                 await context.SaveChangesAsync();
             }
         }
-        private async Task GetComments(int commentId, DataContext context)
+
+        private async Task GetCommentsAsync(int commentId, DataContext context)
         {
-            Comment comment = await context.Comments
+            Comment? comment = await context.Comments
                 .Include(x => x.ParentComment)
                 .Include(x => x.Comments)
                 .Include(x => x.User)
-                .SingleAsync(x => x.Id == commentId);
+                .SingleOrDefaultAsync(x => x.Id == commentId);
+
+            if (comment == null)
+            {
+                throw new SQLException("Comment not found");
+            }
 
             for (int i = 0; i < comment.Comments.Count(); i++)
             {
-                await GetComments(comment.Comments.ElementAt(i).Id, context);
+                await GetCommentsAsync(comment.Comments.ElementAt(i).Id, context);
             }
         }
+
         private async Task<bool> IsPostExistsAsync(int postId, DataContext context)
         {
             return await context.Posts.AnyAsync(x => x.Id == postId);
         }
+
         private async Task<bool> IsCommentExistsAsync(int commentId, DataContext context)
         {
             return await context.Comments.AnyAsync(x => x.Id == commentId);

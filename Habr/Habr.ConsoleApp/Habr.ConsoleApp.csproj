@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Habr.BusinessLogic\Habr.BusinessLogic.csproj" />
     <ProjectReference Include="..\Habr.DataAccess\Habr.DataAccess.csproj" />
   </ItemGroup>
 
