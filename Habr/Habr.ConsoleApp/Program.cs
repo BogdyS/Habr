@@ -7,8 +7,7 @@ namespace Habr.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            UserService service = new UserService();
-            service.LoginAsync("fsfsf", "fsaf");
+
         }
     }
 }

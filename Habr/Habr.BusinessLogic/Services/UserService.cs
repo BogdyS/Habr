@@ -34,9 +34,19 @@ namespace Habr.BusinessLogic.Servises
         {
             using (var context = new DataContext())
             {
-                if (!EmailValidation.IsValidEmail(email))
+                if (!UserValidation.IsValidEmail(email))
                 {
                     throw new LoginException("Email is not valid");
+                }
+
+                if (!UserValidation.IsValidPassword(password))
+                {
+                    throw new LoginException("Password is not valid");
+                }
+
+                if (name.Length != 0)
+                {
+                    throw new LoginException("Name is required");
                 }
 
                 if (await IsEmailExistsAsync(email, context))
