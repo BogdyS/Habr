@@ -13,11 +13,17 @@ namespace Habr.DataAccess.Configurations
                 .ValueGeneratedOnAdd();
             builder.Property(x => x.Title)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(200);
             builder.Property(x => x.Text)
                 .IsRequired()
-                .HasMaxLength(500);
+                .HasMaxLength(2000);
             builder.Property(x => x.Created)
+                .IsRequired();
+            builder.Property(x => x.Updated)
+                .IsRequired();
+            builder.Property(x => x.Posted)
+                .IsRequired();
+            builder.Property(x => x.IsDraft)
                 .IsRequired();
 
             builder.HasOne(x => x.User)

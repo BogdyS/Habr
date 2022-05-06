@@ -1,12 +1,13 @@
-﻿using Habr.DataAccess.Entities;
-using Habr.DataAccess.Servises;
+﻿using Habr.BusinessLogic.Servises;
+using Habr.DataAccess.Entities;
 
 namespace Habr.ConsoleApp
 {
     class Program
     {
-        async static Task Main(string[] args)
+        static async Task Main(string[] args)
         {
+
         }
     }
 }
