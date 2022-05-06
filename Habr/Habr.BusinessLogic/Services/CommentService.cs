@@ -1,4 +1,5 @@
 ﻿using Habr.BusinessLogic.Interfaces;
+using Habr.Common.DTO;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
@@ -8,18 +9,27 @@ namespace Habr.BusinessLogic.Servises
 {
     public class CommentService : ICommentService
     {
-        public async Task<List<Comment>> GetCommentsAsync(int postId)
+        public async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int postId)
         {
             using (var context = new DataContext())
             {
-                var comments = await context.Comments
+                var commentsEntity = await context.Comments
                     .Where(c => c.PostId == postId)
-                    .Include(x => x.User)
+                    .Where(c => c.ParentCommentId == null)
+                    .Include(c => c.User)
                     .ToListAsync();
 
-                foreach (var comment in comments)
+                var comments = new List<CommentDTO>();
+
+                foreach (var c in commentsEntity)
                 {
-                    await GetCommentsAsync(comment.Id, context);
+                    var commentDto = new CommentDTO
+                    {
+                        Text = c.Text,
+                        AuthorName = c.User.Name,
+                        Comments = await GetCommentsAsync(c.Id, context)
+                    };
+                    comments.Add(commentDto);
                 }
 
                 return comments;
@@ -94,23 +104,34 @@ namespace Habr.BusinessLogic.Servises
             }
         }
 
-        private async Task GetCommentsAsync(int commentId, DataContext context)
+        private async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int commentId, DataContext context)
         {
-            Comment? comment = await context.Comments
-                .Include(x => x.ParentComment)
+            var commentChildEntity = await context.Comments
                 .Include(x => x.Comments)
+                .Where(x => x.ParentCommentId == commentId)
                 .Include(x => x.User)
-                .SingleOrDefaultAsync(x => x.Id == commentId);
+                .AsNoTracking()
+                .ToListAsync();
 
-            if (comment == null)
+            if (commentChildEntity.Count == 0)
             {
-                throw new SQLException("Comment not found");
+                return new List<CommentDTO>();
             }
 
-            for (int i = 0; i < comment.Comments.Count(); i++)
+            var childComments = new List<CommentDTO>();
+
+            foreach (var c in commentChildEntity)
             {
-                await GetCommentsAsync(comment.Comments.ElementAt(i).Id, context);
+                var commentDto = new CommentDTO()
+                {
+                    Text = c.Text,
+                    AuthorName = c.User.Name
+                };
+                commentDto.Comments = await GetCommentsAsync(c.Id, context);
+                childComments.Add(commentDto);
             }
+
+            return childComments;
         }
 
         private async Task<bool> IsPostExistsAsync(int postId, DataContext context)

@@ -70,22 +70,29 @@ namespace Habr.BusinessLogic.Servises
             }
         }
 
-        public async Task<Post> GetPostWithCommentsAsync(int postId, ICommentService commentService)
+        public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId, ICommentService commentService)
         {
             using (var context = new DataContext())
             {
-                Post? post = await context.Posts
+                var postEntity = await context.Posts
                     .Where(p => p.Id == postId)
-                    .Include(p => p.Comments)
+                    .Include(p=>p.User)
                     .AsNoTracking()
                     .SingleOrDefaultAsync();
 
-                if (post == null)
+                if (postEntity == null)
                 {
                     throw new SQLException("The post doesn't exists");
                 }
 
-                post.Comments = await commentService.GetCommentsAsync(postId);
+                var post = new FullPostDTO
+                {
+                    Text = postEntity.Text,
+                    Title = postEntity.Title,
+                    AuthorEmail = postEntity.User.Email,
+                    PublishDate = postEntity.Posted,
+                    Comments = await commentService.GetCommentsAsync(postId)
+                };
 
                 return post;
             }
