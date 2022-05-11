@@ -1,5 +1,6 @@
 using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Servises;
+using Habr.WebAPI;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IPostService, PostService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddServices();
+builder.Services.AddDataContext(builder.Configuration);
 
 var app = builder.Build();
 
