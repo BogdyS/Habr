@@ -9,59 +9,60 @@ namespace Habr.BusinessLogic.Servises
 {
     public class UserService : IUserService
     {
+        private readonly DataContext _dbContext;
+
+        public UserService(DataContext dataContext)
+        {
+            _dbContext = dataContext;
+        }
+
         public async Task<User> LoginAsync(string email, string password)
         {
-            using (var context = new DataContext())
+            User? user = await _dbContext.Users
+                .SingleOrDefaultAsync(u => u.Email.Equals(email));
+
+            if (user == null)
             {
-                User? user = await context.Users
-                    .SingleOrDefaultAsync(u => u.Email.Equals(email));
-
-                if (user == null)
-                {
-                    throw new LoginException("Email is incorrect");
-                }
-
-                if (user.Password != password)
-                {
-                    throw new LoginException("Wrong Email or password");
-                }
-
-                return user;
+                throw new LoginException("Email is incorrect");
             }
+
+            if (user.Password != password)
+            {
+                throw new LoginException("Wrong Email or password");
+            }
+
+            return user;
         }
 
         public async Task RegisterAsync(string name, string email, string password)
         {
-            using (var context = new DataContext())
+            if (!UserValidation.IsValidEmail(email))
             {
-                if (!UserValidation.IsValidEmail(email))
-                {
-                    throw new LoginException("Email is not valid");
-                }
-
-                if (!UserValidation.IsValidPassword(password))
-                {
-                    throw new LoginException("Password is not valid");
-                }
-
-                if (name.Length != 0)
-                {
-                    throw new LoginException("Name is required");
-                }
-
-                if (await IsEmailExistsAsync(email, context))
-                {
-                    throw new LoginException("Email is already taken");
-                }
-
-                context.Users.Add(new User()
-                {
-                    Email = email,
-                    Password = password,
-                    Name = name
-                });
-                await context.SaveChangesAsync();
+                throw new LoginException("Email is not valid");
             }
+
+            if (!UserValidation.IsValidPassword(password))
+            {
+                throw new LoginException("Password is not valid");
+            }
+
+            if (name.Length != 0)
+            {
+                throw new LoginException("Name is required");
+            }
+
+            if (await IsEmailExistsAsync(email, _dbContext))
+            {
+                throw new LoginException("Email is already taken");
+            }
+
+            _dbContext.Users.Add(new User()
+            {
+                Email = email,
+                Password = password,
+                Name = name
+            });
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task<bool> IsEmailExistsAsync(string email, DataContext context)
