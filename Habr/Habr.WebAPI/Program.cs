@@ -1,4 +1,6 @@
+using AutoMapper;
 using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
 using Habr.WebAPI;
 
@@ -12,6 +14,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddServices();
 builder.Services.AddDataContext(builder.Configuration);
+builder.Services.AddAutoMapping();
 
 var app = builder.Build();
 

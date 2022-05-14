@@ -1,4 +1,7 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
@@ -11,10 +14,13 @@ namespace Habr.BusinessLogic.Servises
     public class PostService : IPostService
     {
         private readonly DataContext _dbContext;
-
-        public PostService(DataContext dbContext)
+        private readonly IMapper _mapper;
+        private readonly ICommentService _commentService;
+        public PostService(DataContext dbContext, IMapper mapper, ICommentService commentService)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
+            _commentService = commentService;
         }
 
         public async Task<List<PostListDTO>> GetAllPostsAsync()
@@ -22,12 +28,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
                 .Include(p => p.User)
-                .Select(post => new PostListDTO()
-                {
-                    Posted = post.Posted,
-                    Title = post.Title,
-                    UserEmail = post.User.Email
-                })
+                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -39,12 +40,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
-                .Select(post => new PostListDTO()
-                {
-                    Posted = post.Posted,
-                    Title = post.Title,
-                    UserEmail = post.User.Email
-                })
+                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -56,39 +52,29 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => p.IsDraft)
-                .Select(post => new PostDraftDTO()
-                {
-                    Created = post.Created,
-                    Title = post.Title,
-                    Updated = post.Updated
-                })
+                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
             return posts;
         }
 
-        public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId, ICommentService commentService)
+        public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId)
         {
             var postEntity = await _dbContext.Posts
                 .Where(p => p.Id == postId)
                 .Include(p => p.User)
+                .Include(p => p.Comments.Where(c => c.PostId == postId))
+                .ThenInclude(comment => comment.User)
                 .AsNoTracking()
                 .SingleOrDefaultAsync();
 
-            if (postEntity == null)
-            {
-                throw new SQLException("The post doesn't exists");
-            }
-
-            var post = new FullPostDTO
-            {
-                Text = postEntity.Text,
-                Title = postEntity.Title,
-                AuthorEmail = postEntity.User.Email,
-                PublishDate = postEntity.Posted,
-                Comments = await commentService.GetCommentsAsync(postId)
-            };
+           if (postEntity == null)
+           {
+               throw new SQLException("The post doesn't exists");
+           }
+           
+           var post = _mapper.Map<FullPostDTO>(postEntity);
 
             return post;
         }

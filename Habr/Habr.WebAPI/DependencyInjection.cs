@@ -1,4 +1,6 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
 using Habr.DataAccess;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +22,13 @@ public static class DependencyInjection
         services.AddDbContext<DataContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("HabrDatabase")),
             ServiceLifetime.Scoped);
+        return services;
+    }
+
+    public static IServiceCollection AddAutoMapping(this IServiceCollection services)
+    {
+        services.AddAutoMapper(typeof(PostProfile).Assembly);
+        services.AddAutoMapper(typeof(CommentProfile).Assembly);
         return services;
     }
 }
