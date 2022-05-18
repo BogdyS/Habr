@@ -1,7 +1,3 @@
-using AutoMapper;
-using Habr.BusinessLogic.Interfaces;
-using Habr.BusinessLogic.Mapping;
-using Habr.BusinessLogic.Servises;
 using Habr.WebAPI;
 
 

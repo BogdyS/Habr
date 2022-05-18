@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
-using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
@@ -16,13 +14,11 @@ namespace Habr.BusinessLogic.Servises
     {
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly ICommentService _commentService;
         private readonly IUserService _userService;
-        public PostService(DataContext dbContext, IMapper mapper, ICommentService commentService, IUserService userService)
+        public PostService(DataContext dbContext, IMapper mapper, IUserService userService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
-            _commentService = commentService;
             _userService = userService;
         }
 
@@ -92,39 +88,39 @@ namespace Habr.BusinessLogic.Servises
             return post;
         }
 
-        public async Task CreatePostAsync(string? title, string? text, bool isDraft, int userId)
+        public async Task<int> CreatePostAsync(CreatingPostDTO post)
         {
-            if (title == null)
+            if (post.Title == null)
             {
                 throw new InputException("The Title is required");
             }
 
-            if (text == null)
+            if (post.Text == null)
             {
                 throw new InputException("The Text is required");
             }
 
-            if (!PostValidation.TitleValidation(title))
+            if (!PostValidation.TitleValidation(post.Title))
             {
                 throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols");
             }
 
-            if (!PostValidation.TextValidation(text))
+            if (!PostValidation.TextValidation(post.Text))
             {
                 throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
             }
-            var dateTime = DateTime.UtcNow;
-            _dbContext.Posts.Add(new Post()
+
+            if (!await _userService.IsUserExistsAsync(post.UserId))
             {
-                Text = text,
-                Title = title,
-                UserId = userId,
-                Created = dateTime,
-                Posted = dateTime,
-                Updated = dateTime,
-                IsDraft = isDraft
-            });
+                throw new InputException("User isn't exists");
+            }
+
+            var entity = _mapper.Map<Post>(post);
+
+            _dbContext.Posts.Add(entity);
             await _dbContext.SaveChangesAsync();
+
+            return _dbContext.Entry(entity).Entity.Id;
         }
 
         public async Task PostFromDraftAsync(int draftId, int userId)
@@ -141,9 +137,9 @@ namespace Habr.BusinessLogic.Servises
                 throw new AccessException("User can't update another user's post");
             }
 
-            if (draft.IsDraft)
+            if (!draft.IsDraft)
             {
-                throw new AccessException("Post is already draft");
+                throw new AccessException("Post isn't draft");
             }
 
             var time = DateTime.UtcNow;
@@ -151,6 +147,8 @@ namespace Habr.BusinessLogic.Servises
             draft.IsDraft = false;
             draft.Updated = time;
             draft.Posted = time;
+
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task RemovePostToDraftsAsync(int postId, int userId)
@@ -168,9 +166,9 @@ namespace Habr.BusinessLogic.Servises
                 throw new AccessException("User can't update another user's post");
             }
 
-            if (!post.IsDraft)
+            if (post.IsDraft)
             {
-                throw new AccessException("Post isn't draft already");
+                throw new AccessException("Post is already draft");
             }
 
             bool hasComments = await _dbContext.Comments.AnyAsync(x => x.PostId == postId);
@@ -183,7 +181,8 @@ namespace Habr.BusinessLogic.Servises
             post.IsDraft = true;
             await _dbContext.SaveChangesAsync();
         }
-        public async Task UpdatePostAsync(string newTitle, string newText, int postId, int userId)
+
+        public async Task UpdatePostAsync(string? newTitle, string? newText, int postId, int userId)
         {
             Post? postToUpdate = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == postId);
 
@@ -204,12 +203,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (!PostValidation.TitleValidation(newTitle))
             {
-                throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols");
+                throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols and not empty");
             }
 
             if (!PostValidation.TextValidation(newText))
             {
-                throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
+                throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols and not empty");
             }
 
             postToUpdate.Text = newText;

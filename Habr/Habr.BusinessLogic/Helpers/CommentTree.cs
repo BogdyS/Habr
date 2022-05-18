@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using Habr.Common.DTO;
-using Habr.DataAccess.Entities;
+﻿using Habr.DataAccess.Entities;
 
 namespace Habr.BusinessLogic.Helpers;
 
