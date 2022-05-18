@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Validation;
@@ -16,14 +17,16 @@ namespace Habr.BusinessLogic.Servises
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ICommentService _commentService;
-        public PostService(DataContext dbContext, IMapper mapper, ICommentService commentService)
+        private readonly IUserService _userService;
+        public PostService(DataContext dbContext, IMapper mapper, ICommentService commentService, IUserService userService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _commentService = commentService;
+            _userService = userService;
         }
 
-        public async Task<List<PostListDTO>> GetAllPostsAsync()
+        public async Task<IEnumerable<PostListDTO>?> GetAllPostsAsync()
         {
             var posts = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
@@ -35,8 +38,13 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
-        public async Task<List<PostListDTO>> GetUserPostsAsync(int userId)
+        public async Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId)
         {
+            if (!await _userService.IsUserExistsAsync(userId))
+            {
+                throw new SQLException($"User with id = {userId} doesn't exists");
+            }
+
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
@@ -47,8 +55,13 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
-        public async Task<List<PostDraftDTO>> GetUserDraftsAsync(int userId)
+        public async Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId)
         {
+            if (!await _userService.IsUserExistsAsync(userId))
+            {
+                throw new SQLException($"User with id = {userId} doesn't exists");
+            }
+
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => p.IsDraft)
@@ -69,12 +82,12 @@ namespace Habr.BusinessLogic.Servises
                 .AsNoTracking()
                 .SingleOrDefaultAsync();
 
-           if (postEntity == null)
-           {
-               throw new SQLException("The post doesn't exists");
-           }
-           
-           var post = _mapper.Map<FullPostDTO>(postEntity);
+            if (postEntity == null)
+            {
+                throw new SQLException("The post doesn't exists");
+            }
+
+            var post = _mapper.Map<FullPostDTO>(postEntity);
 
             return post;
         }

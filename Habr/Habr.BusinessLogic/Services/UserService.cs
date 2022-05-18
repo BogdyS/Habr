@@ -1,5 +1,8 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Validation;
+using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
@@ -10,15 +13,17 @@ namespace Habr.BusinessLogic.Servises
     public class UserService : IUserService
     {
         private readonly DataContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public UserService(DataContext dataContext)
+        public UserService(DataContext dataContext, IMapper mapper)
         {
             _dbContext = dataContext;
+            _mapper = mapper;
         }
 
-        public async Task<User> LoginAsync(string email, string password)
+        public async Task<UserDTO> LoginAsync(string email, string password)
         {
-            User? user = await _dbContext.Users
+            var user = await _dbContext.Users
                 .SingleOrDefaultAsync(u => u.Email.Equals(email));
 
             if (user == null)
@@ -29,6 +34,20 @@ namespace Habr.BusinessLogic.Servises
             if (user.Password != password)
             {
                 throw new LoginException("Wrong Email or password");
+            }
+
+            return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task<UserDTO> GetUserAsync(int userId)
+        {
+            var user = await _dbContext.Users
+                .ProjectTo<UserDTO>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync(user => user.Id == userId);
+
+            if (user == null)
+            {
+                throw new SQLException("This user doesn't exists");
             }
 
             return user;
@@ -51,7 +70,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new LoginException("Name is required");
             }
 
-            if (await IsEmailExistsAsync(email, _dbContext))
+            if (await IsEmailExistsAsync(email))
             {
                 throw new LoginException("Email is already taken");
             }
@@ -65,9 +84,14 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
-        private async Task<bool> IsEmailExistsAsync(string email, DataContext context)
+        public async Task<bool> IsUserExistsAsync(int userId)
         {
-            return await context.Users.AnyAsync(x => x.Email == email);
+            return await _dbContext.Users.AnyAsync(user => user.Id == userId);
+        }
+
+        private async Task<bool> IsEmailExistsAsync(string email)
+        {
+            return await _dbContext.Users.AnyAsync(x => x.Email == email);
         }
     }
 }

@@ -28,7 +28,6 @@ public static class DependencyInjection
     public static IServiceCollection AddAutoMapping(this IServiceCollection services)
     {
         services.AddAutoMapper(typeof(PostProfile).Assembly);
-        services.AddAutoMapper(typeof(CommentProfile).Assembly);
         return services;
     }
 }

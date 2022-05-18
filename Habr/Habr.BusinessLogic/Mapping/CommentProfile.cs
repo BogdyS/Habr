@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Habr.BusinessLogic.Helpers;
 using Habr.Common.DTO;
 using Habr.DataAccess.Entities;
+using System.Linq;
 
 namespace Habr.BusinessLogic.Mapping;
 
@@ -8,7 +10,7 @@ public class CommentProfile : Profile
 {
     public CommentProfile()
     {
-        CreateMap<Comment, CommentDTO>()
+        var mappingExpression = CreateMap<Comment, CommentDTO>()
             .ForMember(dto => dto.AuthorName,
                 options => options.MapFrom(comment => comment.User.Name))
             .ForMember(dto => dto.Text,

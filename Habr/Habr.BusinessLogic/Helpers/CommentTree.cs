@@ -6,7 +6,7 @@ namespace Habr.BusinessLogic.Helpers;
 
 public static class CommentTree
 {
-    public static ICollection<Comment> SortToTree(IEnumerable<Comment> comments, int? commentId = null)
+    public static ICollection<Comment> SortToTree(ICollection<Comment> comments, int? commentId = null)
     {
         var result = new List<Comment>();
         var nextStepComments = new List<Comment>();

@@ -2,6 +2,7 @@
 using Habr.BusinessLogic.Helpers;
 using Habr.Common.DTO;
 using Habr.DataAccess.Entities;
+using System.Linq;
 
 namespace Habr.BusinessLogic.Mapping;
 
@@ -27,8 +28,8 @@ public class PostProfile : Profile
             .ForMember(dto => dto.AuthorEmail,
                 options => options.MapFrom(post => post.User.Email))
             .ForMember(dto => dto.Comments,
-                options => options.MapFrom(post => CommentTree.SortToTree(post.Comments, null)))
-            .MaxDepth(100);
+                options => options.MapFrom(post => post.Comments))
+            .BeforeMap((post, dto) => post.Comments = CommentTree.SortToTree(post.Comments));
 
         CreateMap<Post, PostDraftDTO>()
             .ForMember(dto => dto.Created,

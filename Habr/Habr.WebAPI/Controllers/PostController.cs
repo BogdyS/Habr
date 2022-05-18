@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
+using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +29,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostListDTO>>> GetAllPostsAsync()
+        public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetAllPostsAsync()
         {
             return Ok(await _postService.GetAllPostsAsync());
         }
@@ -36,7 +37,40 @@ namespace Habr.WebAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FullPostDTO>> GetPostByIdAsync(int id)
         {
-            return Ok(await _postService.GetPostWithCommentsAsync(id));
+            try
+            {
+                var post = await _postService.GetPostWithCommentsAsync(id);
+                return Ok(post);
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.Message);
+            }
+        }
+
+        [HttpGet("user/drafts")]
+        public async Task<ActionResult<IEnumerable<PostDraftDTO>?>> GetDraftsAsync([FromQuery] int userId)
+        {
+            try
+            {
+                return Ok(await _postService.GetUserDraftsAsync(userId));
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.Message);
+            }
+        }
+        [HttpGet("user/posts")]
+        public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetUserPostsAsync([FromQuery] int userId)
+        {
+            try
+            {
+                return Ok(await _postService.GetUserPostsAsync(userId));
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
     }
