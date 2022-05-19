@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Habr.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/posts")]
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
@@ -17,7 +17,7 @@ namespace Habr.WebAPI.Controllers
             _postService = postService;
         }
 
-        [HttpGet]
+        [HttpGet()]
         public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetAllPostsAsync()
         {
             return Ok(await _postService.GetAllPostsAsync());
@@ -37,7 +37,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpGet("drafts/{userId:int}")]
+        [HttpGet("user/drafts")]
         public async Task<ActionResult<IEnumerable<PostDraftDTO>?>> GetUserDraftsAsync([FromQuery] int userId)
         {
             try
@@ -50,7 +50,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpGet("posts/{userId:int}")]
+        [HttpGet("user")]
         public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetUserPostsAsync([FromQuery] int userId)
         {
             try
@@ -63,7 +63,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpPatch("drafts/public-draft")]
+        [HttpPatch("user/drafts/public")]
         public async Task<ActionResult> PublicPostFromDrafts([FromQuery] int userId, [FromQuery] int postId)
         {
             try
@@ -77,7 +77,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpPatch("drafts/to-drafts")]
+        [HttpPatch("user/drafts/remove")]
         public async Task<ActionResult> RemovePostToDrafts([FromQuery] int userId, [FromQuery] int postId)
         {
             try
@@ -91,7 +91,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpPost("posts/create")]
+        [HttpPost()]
         public async Task<ActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
             try
@@ -105,7 +105,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpDelete("posts/delete")]
+        [HttpDelete()]
         public async Task<ActionResult> DeletePostAsync([FromQuery] int userId, [FromQuery] int postId)
         {
             try
@@ -119,7 +119,7 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpPut("post/update")]
+        [HttpPut()]
         public async Task<ActionResult> UpdatePostAsync([FromQuery] int userId, [FromQuery] int postId, [FromBody] UpdatePostDTO post)
         {
             try
