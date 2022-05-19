@@ -21,17 +21,17 @@ namespace Habr.BusinessLogic.Servises
             _mapper = mapper;
         }
 
-        public async Task<UserDTO> LoginAsync(string email, string password)
+        public async Task<UserDTO> LoginAsync(LoginDTO loginData)
         {
             var user = await _dbContext.Users
-                .SingleOrDefaultAsync(u => u.Email.Equals(email));
+                .SingleOrDefaultAsync(u => u.Email.Equals(loginData.Login));
 
             if (user == null)
             {
                 throw new LoginException("Email is incorrect");
             }
 
-            if (user.Password != password)
+            if (user.Password != loginData.Password)
             {
                 throw new LoginException("Wrong Email or password");
             }
@@ -53,35 +53,34 @@ namespace Habr.BusinessLogic.Servises
             return user;
         }
 
-        public async Task RegisterAsync(string name, string email, string password)
+        public async Task<int> RegisterAsync(RegistrationDTO newUser)
         {
-            if (!UserValidation.IsValidEmail(email))
+            if (!UserValidation.IsValidEmail(newUser.Login))
             {
                 throw new LoginException("Email is not valid");
             }
 
-            if (!UserValidation.IsValidPassword(password))
+            if (!UserValidation.IsValidPassword(newUser.Password))
             {
                 throw new LoginException("Password is not valid");
             }
 
-            if (name.Length != 0)
+            if (string.IsNullOrEmpty(newUser.Name))
             {
                 throw new LoginException("Name is required");
             }
 
-            if (await IsEmailExistsAsync(email))
+            if (await IsEmailExistsAsync(newUser.Login))
             {
                 throw new LoginException("Email is already taken");
             }
 
-            _dbContext.Users.Add(new User()
-            {
-                Email = email,
-                Password = password,
-                Name = name
-            });
+            var user = _mapper.Map<User>(newUser);
+
+            _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
+
+            return _dbContext.Entry(user).Entity.Id;
         }
 
         public async Task<bool> IsUserExistsAsync(int userId)
@@ -89,7 +88,7 @@ namespace Habr.BusinessLogic.Servises
             return await _dbContext.Users.AnyAsync(user => user.Id == userId);
         }
 
-        private async Task<bool> IsEmailExistsAsync(string email)
+        private async Task<bool> IsEmailExistsAsync(string? email)
         {
             return await _dbContext.Users.AnyAsync(x => x.Email == email);
         }

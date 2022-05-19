@@ -24,7 +24,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<FullPostDTO>> GetPostAsync(int id)
+        public async Task<ActionResult<FullPostDTO>> GetPostAsync([FromRoute] int id)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpPatch("user/drafts/public")]
-        public async Task<ActionResult> PublicPostFromDrafts([FromQuery] int userId, [FromQuery] int postId)
+        public async Task<ActionResult> PublicPostFromDraftsASync([FromQuery] int userId, [FromQuery] int postId)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpPatch("user/drafts/remove")]
-        public async Task<ActionResult> RemovePostToDrafts([FromQuery] int userId, [FromQuery] int postId)
+        public async Task<ActionResult> RemovePostToDraftsAsync([FromQuery] int userId, [FromQuery] int postId)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace Habr.WebAPI.Controllers
             try
             {
                 int newPostId = await _postService.CreatePostAsync(post);
-                return Created($"api/Post/{newPostId}", newPostId);
+                return Created($"GET api/Post/{newPostId}", newPostId);
             }
             catch (InputException exception)
             {
