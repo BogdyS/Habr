@@ -1,85 +1,68 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Habr.BusinessLogic.Servises
 {
     public class CommentService : ICommentService
     {
         private readonly DataContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public CommentService(DataContext dbContext)
+        public CommentService(DataContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int postId)
+        public async Task<int> CreateCommentToPostAsync(CreateCommentDTO commentDto)
         {
-            var commentsEntity = await _dbContext.Comments
-                .Where(c => c.PostId == postId)
-                .Where(c => c.ParentCommentId == null)
-                .Include(c => c.User)
-                .ToListAsync();
-
-            var comments = new List<CommentDTO>();
-
-            foreach (var c in commentsEntity)
-            {
-                var commentDto = new CommentDTO
-                {
-                    Text = c.Text,
-                    AuthorName = c.User.Name,
-                    Comments = await GetCommentsAsync(c.Id, _dbContext)
-                };
-                comments.Add(commentDto);
-            }
-
-            return comments;
-        }
-
-
-        public async Task CreateCommentToPostAsync(int postId, int userId, string text)
-        {
-            if (!await IsPostExistsAsync(postId, _dbContext))
+            if (!await IsPostExistsAsync(commentDto.PostId))
             {
                 throw new SQLException("Post not found");
             }
 
-            _dbContext.Comments.Add(new Comment()
+            if (!await IsUserExistsAsync(commentDto.UserId))
             {
-                PostId = postId,
-                UserId = userId,
-                Text = text,
-                Created = DateTime.UtcNow,
-                ParentCommentId = null
-            });
+                throw new SQLException("User not found");
+            }
+
+            var comment = _mapper.Map<Comment>(commentDto);
+
+            _dbContext.Comments.Add(comment);
             await _dbContext.SaveChangesAsync();
+
+            return _dbContext.Entry(comment).Entity.Id;
         }
 
-        public async Task CreateCommentToCommentAsync(int postId, int commentId, int userId, string text)
+        public async Task<int> CreateCommentToCommentAsync(CreateCommentToCommentDTO commentDto)
         {
-            if (!await IsPostExistsAsync(postId, _dbContext))
+            if (!await IsPostExistsAsync(commentDto.PostId))
             {
                 throw new SQLException("Post not found");
             }
 
-            if (!await IsCommentExistsAsync(commentId, _dbContext))
+            if (!await IsCommentAndPostValid(commentDto))
             {
-                throw new SQLException("Comment not found");
+                throw new SQLException("Invalid relationship between comment and post");
             }
 
-            _dbContext.Comments.Add(new Comment()
+            if (!await IsUserExistsAsync(commentDto.UserId))
             {
-                PostId = postId,
-                UserId = userId,
-                Text = text,
-                Created = DateTime.UtcNow,
-                ParentCommentId = commentId
-            });
+                throw new SQLException("User not found");
+            }
+
+            var comment = _mapper.Map<Comment>(commentDto);
+
+            _dbContext.Comments.Add(comment);
             await _dbContext.SaveChangesAsync();
+
+            return _dbContext.Entry(comment).Entity.Id;
         }
 
         public async Task DeleteCommentAsync(int commentId, int userId)
@@ -96,48 +79,42 @@ namespace Habr.BusinessLogic.Servises
                 throw new AccessException("User can't delete another user's comment");
             }
 
-            _dbContext.Comments.Remove(comment);
+            await CascadeDelete(comment);
+
             await _dbContext.SaveChangesAsync();
         }
 
-        private async Task<IEnumerable<CommentDTO>> GetCommentsAsync(int commentId, DataContext context)
+        private async Task<bool> IsPostExistsAsync(int postId)
         {
-            var commentChildEntity = await context.Comments
-                .Include(x => x.Comments)
-                .Where(x => x.ParentCommentId == commentId)
-                .Include(x => x.User)
-                .AsNoTracking()
+            return await _dbContext.Posts.AnyAsync(x => x.Id == postId);
+        }
+
+        private async Task<bool> IsUserExistsAsync(int userId)
+        {
+            return await _dbContext.Users.AnyAsync(x => x.Id == userId);
+        }
+
+        private async Task<bool> IsCommentAndPostValid(CreateCommentToCommentDTO comment)
+        {
+            int? parentCommentPostId = (await _dbContext.Comments
+                .Select(c => new {c.PostId, c.Id})
+                .SingleOrDefaultAsync(c => c.Id == comment.ParentCommentId))?.PostId;
+
+            return parentCommentPostId == comment.PostId;
+        }
+
+        private async Task CascadeDelete(Comment comment)
+        {
+            var comments = await _dbContext.Comments
+                .Where(c => c.ParentCommentId == comment.Id)
                 .ToListAsync();
 
-            if (commentChildEntity.Count == 0)
+            foreach (var c in comments)
             {
-                return new List<CommentDTO>();
+                await CascadeDelete(c);
             }
 
-            var childComments = new List<CommentDTO>();
-
-            foreach (var c in commentChildEntity)
-            {
-                var commentDto = new CommentDTO()
-                {
-                    Text = c.Text,
-                    AuthorName = c.User.Name
-                };
-                commentDto.Comments = await GetCommentsAsync(c.Id, context);
-                childComments.Add(commentDto);
-            }
-
-            return childComments;
-        }
-
-        private async Task<bool> IsPostExistsAsync(int postId, DataContext context)
-        {
-            return await context.Posts.AnyAsync(x => x.Id == postId);
-        }
-
-        private async Task<bool> IsCommentExistsAsync(int commentId, DataContext context)
-        {
-            return await context.Comments.AnyAsync(x => x.Id == commentId);
+            _dbContext.Remove(comment);
         }
     }
 }

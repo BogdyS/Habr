@@ -4,8 +4,7 @@ namespace Habr.BusinessLogic.Interfaces;
 
 public interface ICommentService
 {
-    Task<IEnumerable<CommentDTO>> GetCommentsAsync(int postId);
-    Task CreateCommentToPostAsync(int postId, int userId, string text);
-    Task CreateCommentToCommentAsync(int postId, int commentId, int userId, string text);
+    Task<int> CreateCommentToPostAsync(CreateCommentDTO commentDto);
+    Task<int> CreateCommentToCommentAsync(CreateCommentToCommentDTO commentDto);
     Task DeleteCommentAsync(int commentId, int userId);
 }
