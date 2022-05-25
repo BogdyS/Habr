@@ -53,7 +53,7 @@ namespace Habr.BusinessLogic.Servises
             return user;
         }
 
-        public async Task<int> RegisterAsync(RegistrationDTO newUser)
+        public async Task<UserDTO> RegisterAsync(RegistrationDTO newUser)
         {
             if (!UserValidation.IsValidEmail(newUser.Login))
             {
@@ -80,12 +80,12 @@ namespace Habr.BusinessLogic.Servises
             _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
 
-            return _dbContext.Entry(user).Entity.Id;
+            return _mapper.Map<UserDTO>(user);
         }
 
-        public async Task<bool> IsUserExistsAsync(int userId)
+        public async Task<User?> IsUserExistsAsync(int userId)
         {
-            return await _dbContext.Users.AnyAsync(user => user.Id == userId);
+            return await _dbContext.Users.SingleOrDefaultAsync(user => user.Id == userId);
         }
 
         private async Task<bool> IsEmailExistsAsync(string? email)

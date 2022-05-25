@@ -96,8 +96,8 @@ namespace Habr.WebAPI.Controllers
         {
             try
             {
-                int newPostId = await _postService.CreatePostAsync(post);
-                return Created($"GET api/Post/{newPostId}", newPostId);
+                var newPost = await _postService.CreatePostAsync(post);
+                return CreatedAtAction(nameof(GetPostAsync), new { id = newPost.Id }, newPost);
             }
             catch (InputException exception)
             {

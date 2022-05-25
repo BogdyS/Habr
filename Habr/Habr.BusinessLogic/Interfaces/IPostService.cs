@@ -8,7 +8,7 @@ public interface IPostService
     Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId);
     Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId);
     Task<FullPostDTO> GetPostWithCommentsAsync(int postId);
-    Task<int> CreatePostAsync(CreatingPostDTO post);
+    Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post);
     Task PostFromDraftAsync(int draftId, int userId);
     Task RemovePostToDraftsAsync(int postId, int userId);
     Task UpdatePostAsync(string? newTitle, string? newText, int postId, int userId);

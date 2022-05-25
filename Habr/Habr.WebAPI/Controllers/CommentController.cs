@@ -21,22 +21,8 @@ namespace Habr.WebAPI.Controllers
         {
             try
             {
-                int id = await _commentService.CreateCommentToPostAsync(comment);
-                return Created("", id);
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
-        }
-
-        [HttpPost("/to-comment")]
-        public async Task<IActionResult> CreateCommentToCommentAsync([FromBody] CreateCommentToCommentDTO comment)
-        {
-            try
-            {
-                int id = await _commentService.CreateCommentToCommentAsync(comment);
-                return Created("", id);
+                var createdComment = await _commentService.CreateCommentAsync(comment);
+                return CreatedAtAction("", createdComment);
             }
             catch (Exception exception)
             {

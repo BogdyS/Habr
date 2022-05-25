@@ -25,15 +25,5 @@ public class CommentProfile : Profile
                 options => options.MapFrom(dto => dto.Text))
             .ForMember(comment => comment.UserId,
                 options => options.MapFrom(dto => dto.UserId));
-
-        CreateMap<CreateCommentToCommentDTO, Comment>()
-            .ForMember(comment => comment.PostId,
-                options => options.MapFrom(dto => dto.PostId))
-            .ForMember(comment => comment.Text,
-                options => options.MapFrom(dto => dto.Text))
-            .ForMember(comment => comment.UserId,
-                options => options.MapFrom(dto => dto.UserId))
-            .ForMember(comment => comment.ParentCommentId,
-                options => options.MapFrom(dto => dto.ParentCommentId));
     }
 }

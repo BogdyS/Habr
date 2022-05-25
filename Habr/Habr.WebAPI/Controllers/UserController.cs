@@ -50,8 +50,8 @@ namespace Habr.WebAPI.Controllers
         {
             try
             {
-                int id = await _userService.RegisterAsync(newUser);
-                return Created($"GET api/users/{id}", id);
+                var user = await _userService.RegisterAsync(newUser);
+                return CreatedAtAction(nameof(GetUserAsync), new { id = user.Id }, user);
             }
             catch (Exception exception)
             {

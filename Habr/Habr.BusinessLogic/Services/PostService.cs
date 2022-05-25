@@ -36,7 +36,7 @@ namespace Habr.BusinessLogic.Servises
 
         public async Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId)
         {
-            if (!await _userService.IsUserExistsAsync(userId))
+            if (await _userService.IsUserExistsAsync(userId) is null)
             {
                 throw new SQLException($"User with id = {userId} doesn't exists");
             }
@@ -53,7 +53,7 @@ namespace Habr.BusinessLogic.Servises
 
         public async Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId)
         {
-            if (!await _userService.IsUserExistsAsync(userId))
+            if (await _userService.IsUserExistsAsync(userId) is null)
             {
                 throw new SQLException($"User with id = {userId} doesn't exists");
             }
@@ -88,7 +88,7 @@ namespace Habr.BusinessLogic.Servises
             return post;
         }
 
-        public async Task<int> CreatePostAsync(CreatingPostDTO post)
+        public async Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post)
         {
             if (post.Title == null)
             {
@@ -110,17 +110,20 @@ namespace Habr.BusinessLogic.Servises
                 throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
             }
 
-            if (!await _userService.IsUserExistsAsync(post.UserId))
+            User? user;
+
+            if ((user = await _userService.IsUserExistsAsync(post.UserId)) is null)
             {
                 throw new InputException("User isn't exists");
             }
 
             var entity = _mapper.Map<Post>(post);
+            entity.User = user;
 
             _dbContext.Posts.Add(entity);
             await _dbContext.SaveChangesAsync();
 
-            return _dbContext.Entry(entity).Entity.Id;
+            return _mapper.Map<FullPostDTO>(entity);
         }
 
         public async Task PostFromDraftAsync(int draftId, int userId)
