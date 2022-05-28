@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Habr.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/comments")]
+    [Route("api/comment-management")]
     public class CommentController : ControllerBase
     {
         private readonly ICommentService _commentService;
@@ -16,13 +16,13 @@ namespace Habr.WebAPI.Controllers
             _commentService = commentService;
         }
 
-        [HttpPost()]
-        public async Task<IActionResult> CreateCommentToPostAsync([FromBody] CreateCommentDTO comment)
+        [HttpPost("comments")]
+        public async Task<IActionResult> CreateCommentAsync([FromBody] CreateCommentDTO comment)
         {
             try
             {
                 var createdComment = await _commentService.CreateCommentAsync(comment);
-                return CreatedAtAction("", createdComment);
+                return CreatedAtAction(nameof(GetCommentsAsync), new { id = createdComment.Id}, createdComment);
             }
             catch (Exception exception)
             {
@@ -30,8 +30,15 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpDelete()]
-        public async Task<IActionResult> DeleteCommentAsync([FromQuery] int userId, [FromQuery] int commentId)
+        [HttpGet("comments/{commentId:int}")]
+        public async Task<IActionResult> GetCommentsAsync([FromRoute] int commentId)
+        {
+            var comment = await _commentService.GetCommentAsync(commentId);
+            return Ok(comment);
+        }
+
+        [HttpDelete("users/{userId:int}/comments/{commentId:int}")]
+        public async Task<IActionResult> DeleteCommentAsync([FromRoute] int userId, [FromRoute] int commentId)
         {
             try
             {
@@ -43,6 +50,5 @@ namespace Habr.WebAPI.Controllers
                 return BadRequest(exception.ToDto());
             }
         }
-
     }
 }

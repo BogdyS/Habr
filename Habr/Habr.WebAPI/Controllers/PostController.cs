@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Habr.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/posts")]
+    [Route("api/post-management")]
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
@@ -17,81 +17,13 @@ namespace Habr.WebAPI.Controllers
             _postService = postService;
         }
 
-        [HttpGet()]
+        [HttpGet("posts")]
         public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetAllPostsAsync()
         {
             return Ok(await _postService.GetAllPostsAsync());
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<FullPostDTO>> GetPostAsync([FromRoute] int id)
-        {
-            try
-            {
-                var post = await _postService.GetPostWithCommentsAsync(id);
-                return Ok(post);
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
-        }
-
-        [HttpGet("user/drafts")]
-        public async Task<ActionResult<IEnumerable<PostDraftDTO>?>> GetUserDraftsAsync([FromQuery] int userId)
-        {
-            try
-            {
-                return Ok(await _postService.GetUserDraftsAsync(userId));
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
-        }
-
-        [HttpGet("user")]
-        public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetUserPostsAsync([FromQuery] int userId)
-        {
-            try
-            {
-                return Ok(await _postService.GetUserPostsAsync(userId));
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
-        }
-
-        [HttpPatch("user/drafts/public")]
-        public async Task<ActionResult> PublicPostFromDraftsASync([FromQuery] int userId, [FromQuery] int postId)
-        {
-            try
-            {
-                await _postService.PostFromDraftAsync(postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return NotFound(exception.ToDto());
-            }
-        }
-
-        [HttpPatch("user/drafts/remove")]
-        public async Task<ActionResult> RemovePostToDraftsAsync([FromQuery] int userId, [FromQuery] int postId)
-        {
-            try
-            {
-                await _postService.RemovePostToDraftsAsync(postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return NotFound(exception.ToDto());
-            }
-        }
-
-        [HttpPost()]
+        [HttpPost("posts")]
         public async Task<ActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
             try
@@ -105,8 +37,76 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpDelete()]
-        public async Task<ActionResult> DeletePostAsync([FromQuery] int userId, [FromQuery] int postId)
+        [HttpGet("posts/{postId:int}")]
+        public async Task<ActionResult<FullPostDTO>> GetPostAsync([FromRoute] int postId)
+        {
+            try
+            {
+                var post = await _postService.GetPostWithCommentsAsync(postId);
+                return Ok(post);
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.ToDto());
+            }
+        }
+
+        [HttpGet("users/{userId:int}/posts")]
+        public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetUserPostsAsync([FromRoute] int userId)
+        {
+            try
+            {
+                return Ok(await _postService.GetUserPostsAsync(userId));
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.ToDto());
+            }
+        }
+
+        [HttpGet("users/{userId:int}/posts/drafts")]
+        public async Task<ActionResult<IEnumerable<PostDraftDTO>?>> GetUserDraftsAsync([FromRoute] int userId)
+        {
+            try
+            {
+                return Ok(await _postService.GetUserDraftsAsync(userId));
+            }
+            catch (SQLException exception)
+            {
+                return NotFound(exception.ToDto());
+            }
+        }
+
+        [HttpPatch("users/{userId:int}/posts/{postId:int}/public-from-drafts")]
+        public async Task<ActionResult> PublicPostFromDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
+        {
+            try
+            {
+                await _postService.PostFromDraftAsync(postId, userId);
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                return NotFound(exception.ToDto());
+            }
+        }
+
+        [HttpPatch("users/{userId:int}/posts/{postId:int}/remove-to-drafts")]
+        public async Task<ActionResult> RemovePostToDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
+        {
+            try
+            {
+                await _postService.RemovePostToDraftsAsync(postId, userId);
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                return NotFound(exception.ToDto());
+            }
+        }
+
+        [HttpDelete("users/{userId:int}/posts/{postId:int}")]
+        public async Task<ActionResult> DeletePostAsync([FromRoute] int userId, [FromRoute] int postId)
         {
             try
             {
@@ -119,8 +119,8 @@ namespace Habr.WebAPI.Controllers
             }
         }
 
-        [HttpPut()]
-        public async Task<ActionResult> UpdatePostAsync([FromQuery] int userId, [FromQuery] int postId, [FromBody] UpdatePostDTO post)
+        [HttpPut("users/{userId:int}/posts/{postId:int}")]
+        public async Task<ActionResult> UpdatePostAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] UpdatePostDTO post)
         {
             try
             {

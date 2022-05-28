@@ -6,6 +6,7 @@ using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using AutoMapper.QueryableExtensions;
 
 namespace Habr.BusinessLogic.Servises
 {
@@ -18,6 +19,20 @@ namespace Habr.BusinessLogic.Servises
         {
             _dbContext = dbContext;
             _mapper = mapper;
+        }
+
+        public async Task<CommentDTO> GetCommentAsync(int id)
+        {
+            var comment =  await _dbContext.Comments
+                .ProjectTo<CommentDTO>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync(comment => comment.Id == id);
+
+            if (comment == null)
+            {
+                throw new SQLException($"Comment with id = {id} doesn't exists");
+            }
+            
+            return comment;
         }
 
         public async Task<CommentDTO> CreateCommentAsync(CreateCommentDTO commentDto)
