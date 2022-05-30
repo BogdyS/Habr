@@ -1,4 +1,6 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
@@ -11,68 +13,68 @@ namespace Habr.BusinessLogic.Servises
     public class PostService : IPostService
     {
         private readonly DataContext _dbContext;
-
-        public PostService(DataContext dbContext)
+        private readonly IMapper _mapper;
+        private readonly IUserService _userService;
+        public PostService(DataContext dbContext, IMapper mapper, IUserService userService)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
+            _userService = userService;
         }
 
-        public async Task<List<PostListDTO>> GetAllPostsAsync()
+        public async Task<IEnumerable<PostListDTO>?> GetAllPostsAsync()
         {
             var posts = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
                 .Include(p => p.User)
-                .Select(post => new PostListDTO()
-                {
-                    Posted = post.Posted,
-                    Title = post.Title,
-                    UserEmail = post.User.Email
-                })
+                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
             return posts;
         }
 
-        public async Task<List<PostListDTO>> GetUserPostsAsync(int userId)
+        public async Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId)
         {
+            if (await _userService.IsUserExistsAsync(userId) is null)
+            {
+                throw new SQLException($"User with id = {userId} doesn't exists");
+            }
+
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
-                .Select(post => new PostListDTO()
-                {
-                    Posted = post.Posted,
-                    Title = post.Title,
-                    UserEmail = post.User.Email
-                })
+                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
             return posts;
         }
 
-        public async Task<List<PostDraftDTO>> GetUserDraftsAsync(int userId)
+        public async Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId)
         {
+            if (await _userService.IsUserExistsAsync(userId) is null)
+            {
+                throw new SQLException($"User with id = {userId} doesn't exists");
+            }
+
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => p.IsDraft)
-                .Select(post => new PostDraftDTO()
-                {
-                    Created = post.Created,
-                    Title = post.Title,
-                    Updated = post.Updated
-                })
+                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
             return posts;
         }
 
-        public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId, ICommentService commentService)
+        public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId)
         {
             var postEntity = await _dbContext.Posts
                 .Where(p => p.Id == postId)
                 .Include(p => p.User)
+                .Include(p => p.Comments.Where(c => c.PostId == postId))
+                .ThenInclude(comment => comment.User)
                 .AsNoTracking()
                 .SingleOrDefaultAsync();
 
@@ -81,51 +83,47 @@ namespace Habr.BusinessLogic.Servises
                 throw new SQLException("The post doesn't exists");
             }
 
-            var post = new FullPostDTO
-            {
-                Text = postEntity.Text,
-                Title = postEntity.Title,
-                AuthorEmail = postEntity.User.Email,
-                PublishDate = postEntity.Posted,
-                Comments = await commentService.GetCommentsAsync(postId)
-            };
+            var post = _mapper.Map<FullPostDTO>(postEntity);
 
             return post;
         }
 
-        public async Task CreatePostAsync(string? title, string? text, bool isDraft, int userId)
+        public async Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post)
         {
-            if (title == null)
+            if (post.Title == null)
             {
                 throw new InputException("The Title is required");
             }
 
-            if (text == null)
+            if (post.Text == null)
             {
                 throw new InputException("The Text is required");
             }
 
-            if (!PostValidation.TitleValidation(title))
+            if (!PostValidation.TitleValidation(post.Title))
             {
                 throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols");
             }
 
-            if (!PostValidation.TextValidation(text))
+            if (!PostValidation.TextValidation(post.Text))
             {
                 throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
             }
-            var dateTime = DateTime.UtcNow;
-            _dbContext.Posts.Add(new Post()
+
+            User? user;
+
+            if ((user = await _userService.IsUserExistsAsync(post.UserId)) is null)
             {
-                Text = text,
-                Title = title,
-                UserId = userId,
-                Created = dateTime,
-                Posted = dateTime,
-                Updated = dateTime,
-                IsDraft = isDraft
-            });
+                throw new InputException("User isn't exists");
+            }
+
+            var entity = _mapper.Map<Post>(post);
+            entity.User = user;
+
+            _dbContext.Posts.Add(entity);
             await _dbContext.SaveChangesAsync();
+
+            return _mapper.Map<FullPostDTO>(entity);
         }
 
         public async Task PostFromDraftAsync(int draftId, int userId)
@@ -142,9 +140,9 @@ namespace Habr.BusinessLogic.Servises
                 throw new AccessException("User can't update another user's post");
             }
 
-            if (draft.IsDraft)
+            if (!draft.IsDraft)
             {
-                throw new AccessException("Post is already draft");
+                throw new AccessException("Post isn't draft");
             }
 
             var time = DateTime.UtcNow;
@@ -152,6 +150,8 @@ namespace Habr.BusinessLogic.Servises
             draft.IsDraft = false;
             draft.Updated = time;
             draft.Posted = time;
+
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task RemovePostToDraftsAsync(int postId, int userId)
@@ -169,9 +169,9 @@ namespace Habr.BusinessLogic.Servises
                 throw new AccessException("User can't update another user's post");
             }
 
-            if (!post.IsDraft)
+            if (post.IsDraft)
             {
-                throw new AccessException("Post isn't draft already");
+                throw new AccessException("Post is already draft");
             }
 
             bool hasComments = await _dbContext.Comments.AnyAsync(x => x.PostId == postId);
@@ -184,7 +184,8 @@ namespace Habr.BusinessLogic.Servises
             post.IsDraft = true;
             await _dbContext.SaveChangesAsync();
         }
-        public async Task UpdatePostAsync(string newTitle, string newText, int postId, int userId)
+
+        public async Task UpdatePostAsync(string? newTitle, string? newText, int postId, int userId)
         {
             Post? postToUpdate = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == postId);
 
@@ -205,12 +206,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (!PostValidation.TitleValidation(newTitle))
             {
-                throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols");
+                throw new InputException($"The Title must be less than {PostValidation.MaxTitleLength} symbols and not empty");
             }
 
             if (!PostValidation.TextValidation(newText))
             {
-                throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols");
+                throw new InputException($"The Text must be less than {PostValidation.MaxTextLength} symbols and not empty");
             }
 
             postToUpdate.Text = newText;

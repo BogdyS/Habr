@@ -1,5 +1,8 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Validation;
+using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
@@ -10,64 +13,84 @@ namespace Habr.BusinessLogic.Servises
     public class UserService : IUserService
     {
         private readonly DataContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public UserService(DataContext dataContext)
+        public UserService(DataContext dataContext, IMapper mapper)
         {
             _dbContext = dataContext;
+            _mapper = mapper;
         }
 
-        public async Task<User> LoginAsync(string email, string password)
+        public async Task<UserDTO> LoginAsync(LoginDTO loginData)
         {
-            User? user = await _dbContext.Users
-                .SingleOrDefaultAsync(u => u.Email.Equals(email));
+            var user = await _dbContext.Users
+                .SingleOrDefaultAsync(u => u.Email.Equals(loginData.Login));
 
             if (user == null)
             {
                 throw new LoginException("Email is incorrect");
             }
 
-            if (user.Password != password)
+            if (user.Password != loginData.Password)
             {
                 throw new LoginException("Wrong Email or password");
+            }
+
+            return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task<UserDTO> GetUserAsync(int userId)
+        {
+            var user = await _dbContext.Users
+                .ProjectTo<UserDTO>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync(user => user.Id == userId);
+
+            if (user == null)
+            {
+                throw new SQLException("This user doesn't exists");
             }
 
             return user;
         }
 
-        public async Task RegisterAsync(string name, string email, string password)
+        public async Task<UserDTO> RegisterAsync(RegistrationDTO newUser)
         {
-            if (!UserValidation.IsValidEmail(email))
+            if (!UserValidation.IsValidEmail(newUser.Login))
             {
                 throw new LoginException("Email is not valid");
             }
 
-            if (!UserValidation.IsValidPassword(password))
+            if (!UserValidation.IsValidPassword(newUser.Password))
             {
                 throw new LoginException("Password is not valid");
             }
 
-            if (name.Length != 0)
+            if (string.IsNullOrEmpty(newUser.Name))
             {
                 throw new LoginException("Name is required");
             }
 
-            if (await IsEmailExistsAsync(email, _dbContext))
+            if (await IsEmailExistsAsync(newUser.Login))
             {
                 throw new LoginException("Email is already taken");
             }
 
-            _dbContext.Users.Add(new User()
-            {
-                Email = email,
-                Password = password,
-                Name = name
-            });
+            var user = _mapper.Map<User>(newUser);
+
+            _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync();
+
+            return _mapper.Map<UserDTO>(user);
         }
 
-        private async Task<bool> IsEmailExistsAsync(string email, DataContext context)
+        public async Task<User?> IsUserExistsAsync(int userId)
         {
-            return await context.Users.AnyAsync(x => x.Email == email);
+            return await _dbContext.Users.SingleOrDefaultAsync(user => user.Id == userId);
+        }
+
+        private async Task<bool> IsEmailExistsAsync(string? email)
+        {
+            return await _dbContext.Users.AnyAsync(x => x.Email == email);
         }
     }
 }
