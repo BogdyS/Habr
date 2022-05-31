@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO.User;
@@ -7,6 +8,7 @@ using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
 {
@@ -14,11 +16,13 @@ namespace Habr.BusinessLogic.Servises
     {
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IValidator<RegistrationDTO> _userValidator;
 
-        public UserService(DataContext dataContext, IMapper mapper)
+        public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator)
         {
             _dbContext = dataContext;
             _mapper = mapper;
+            _userValidator = userValidator;
         }
 
         public async Task<UserDTO> LoginAsync(LoginDTO loginData)
@@ -47,7 +51,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (user == null)
             {
-                throw new SQLException("This user doesn't exists");
+                throw new NotFoundException("This user doesn't exists");
             }
 
             return user;
@@ -55,19 +59,11 @@ namespace Habr.BusinessLogic.Servises
 
         public async Task<UserDTO> RegisterAsync(RegistrationDTO newUser)
         {
-            if (!UserValidation.IsValidEmail(newUser.Login))
+            var validationResult = await _userValidator.ValidateAsync(newUser);
+            if (!validationResult.IsValid)
             {
-                throw new LoginException("Email is not valid");
-            }
-
-            if (!UserValidation.IsValidPassword(newUser.Password))
-            {
-                throw new LoginException("Password is not valid");
-            }
-
-            if (string.IsNullOrEmpty(newUser.Name))
-            {
-                throw new LoginException("Name is required");
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, (string) error.AttemptedValue);
             }
 
             if (await IsEmailExistsAsync(newUser.Login))

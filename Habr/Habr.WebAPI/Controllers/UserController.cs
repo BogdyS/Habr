@@ -25,7 +25,7 @@ namespace Habr.WebAPI.Controllers
                 var user = await _userService.GetUserAsync(id);
                 return Ok(user);
             }
-            catch (SQLException exception)
+            catch (NotFoundException exception)
             {
                 return NotFound(exception.ToDto());
             }

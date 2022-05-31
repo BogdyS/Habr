@@ -7,6 +7,8 @@ using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using AutoMapper.QueryableExtensions;
+using FluentValidation;
+using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
 {
@@ -14,11 +16,13 @@ namespace Habr.BusinessLogic.Servises
     {
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IValidator<CreateCommentDTO> _commentValidator;
 
-        public CommentService(DataContext dbContext, IMapper mapper)
+        public CommentService(DataContext dbContext, IMapper mapper, IValidator<CreateCommentDTO> commentValidator)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _commentValidator = commentValidator;
         }
 
         public async Task<CommentDTO> GetCommentAsync(int id)
@@ -29,7 +33,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new SQLException($"Comment with id = {id} doesn't exists");
+                throw new NotFoundException($"Comment with id = {id} doesn't exists");
             }
             
             return comment;
@@ -37,6 +41,13 @@ namespace Habr.BusinessLogic.Servises
 
         public async Task<CommentDTO> CreateCommentAsync(CreateCommentDTO commentDto)
         {
+            var validationResult = await _commentValidator.ValidateAsync(commentDto);
+            if (!validationResult.IsValid)
+            {
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, (string)error.AttemptedValue);
+            }
+
             if (commentDto.ParentCommentId == default)
             {
                 return await CreateCommentToPostAsync(commentDto);
@@ -51,7 +62,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new SQLException("Comment not found");
+                throw new NotFoundException("Comment not found");
             }
 
             if (comment.UserId != userId)
@@ -68,13 +79,13 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new SQLException("Post not found");
+                throw new NotFoundException("Post not found");
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new SQLException("User not found");
+                throw new NotFoundException("User not found");
             }
 
             var comment = _mapper.Map<Comment>(commentDto);
@@ -90,18 +101,18 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new SQLException("Post not found");
+                throw new NotFoundException("Post not found");
             }
 
-            if (!await IsCommentAndPostValid(commentDto))
+            if (!await IsCommentAndPostValidRelationship(commentDto))
             {
-                throw new SQLException("Invalid relationship between comment and post");
+                throw new RelationshipException("Invalid relationship between comment and post");
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new SQLException("User not found");
+                throw new NotFoundException("User not found");
             }
 
             var comment = _mapper.Map<Comment>(commentDto);
@@ -123,7 +134,7 @@ namespace Habr.BusinessLogic.Servises
             return await _dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId);
         }
 
-        private async Task<bool> IsCommentAndPostValid(CreateCommentDTO comment)
+        private async Task<bool> IsCommentAndPostValidRelationship(CreateCommentDTO comment)
         {
             int? parentCommentPostId = (await _dbContext.Comments
                 .Select(c => new { c.PostId, c.Id })

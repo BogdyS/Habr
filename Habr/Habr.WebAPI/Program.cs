@@ -1,3 +1,4 @@
+using FluentValidation.AspNetCore;
 using Habr.WebAPI;
 
 
@@ -11,6 +12,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddServices();
 builder.Services.AddDataContext(builder.Configuration);
 builder.Services.AddAutoMapping();
+builder.Services.AddValidation();
+
 builder.Services.AddMvc(options => options.SuppressAsyncSuffixInActionNames = false);
 
 var app = builder.Build();

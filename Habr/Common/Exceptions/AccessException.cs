@@ -1,7 +1,9 @@
-﻿namespace Habr.Common.Exceptions
+﻿using Habr.Common.Exceptions.Base;
+
+namespace Habr.Common.Exceptions
 {
-    public class AccessException : Exception
+    public class AccessException : BaseException
     {
-        public AccessException(string message) : base(message) {}
+        public AccessException(string message) : base(message, 403) {}
     }
 }

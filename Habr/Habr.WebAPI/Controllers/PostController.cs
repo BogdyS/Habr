@@ -45,7 +45,7 @@ namespace Habr.WebAPI.Controllers
                 var post = await _postService.GetPostWithCommentsAsync(postId);
                 return Ok(post);
             }
-            catch (SQLException exception)
+            catch (NotFoundException exception)
             {
                 return NotFound(exception.ToDto());
             }
@@ -58,7 +58,7 @@ namespace Habr.WebAPI.Controllers
             {
                 return Ok(await _postService.GetUserPostsAsync(userId));
             }
-            catch (SQLException exception)
+            catch (NotFoundException exception)
             {
                 return NotFound(exception.ToDto());
             }
@@ -71,7 +71,7 @@ namespace Habr.WebAPI.Controllers
             {
                 return Ok(await _postService.GetUserDraftsAsync(userId));
             }
-            catch (SQLException exception)
+            catch (NotFoundException exception)
             {
                 return NotFound(exception.ToDto());
             }
