@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
+using Habr.Common.Resourses;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
@@ -33,7 +34,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new NotFoundException($"Comment with id = {id} doesn't exists");
+                throw new NotFoundException(ExceptionMessages.CommentNotFound);
             }
             
             return comment;
@@ -62,12 +63,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new NotFoundException("Comment not found");
+                throw new NotFoundException(ExceptionMessages.CommentNotFound);
             }
 
             if (comment.UserId != userId)
             {
-                throw new AccessException("User can't delete another user's comment");
+                throw new AccessException(ExceptionMessages.AcessToCommentDenied);
             }
 
             await CascadeDelete(comment);
@@ -79,13 +80,13 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new NotFoundException("Post not found");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new NotFoundException("User not found");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var comment = _mapper.Map<Comment>(commentDto);
@@ -101,18 +102,18 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new NotFoundException("Post not found");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             if (!await IsCommentAndPostValidRelationship(commentDto))
             {
-                throw new RelationshipException("Invalid relationship between comment and post");
+                throw new RelationshipException(ExceptionMessages.InvalidCommentPostRelationship);
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new NotFoundException("User not found");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var comment = _mapper.Map<Comment>(commentDto);

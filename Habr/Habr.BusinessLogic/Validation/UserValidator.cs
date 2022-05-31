@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using Habr.Common.DTO.User;
+using Habr.Common.Resourses;
 
 namespace Habr.BusinessLogic.Validation;
 
@@ -14,30 +15,30 @@ public class UserValidator : AbstractValidator<RegistrationDTO>
     {
         RuleFor(user => user.Name)
             .NotEmpty()
-            .WithMessage("Name is required");
+            .WithMessage(ExceptionMessages.NameRequired);
         RuleFor(user => user.Name)
             .MaximumLength(MaximumNameLength)
-            .WithMessage($"Name's length must be less than {MaximumNameLength} symbols");
+            .WithMessage(ExceptionMessages.NameOverLimit);
 
         RuleFor(user => user.Login)
             .NotEmpty()
-            .WithMessage("Login is required");
+            .WithMessage(ExceptionMessages.LoginRequired);
         RuleFor(user => user.Login)
             .MaximumLength(MaximumLoginLength)
-            .WithMessage($"Login's length must be less than {MaximumLoginLength} symbols");
+            .WithMessage(ExceptionMessages.LoginOverLimit);
         RuleFor(user => user.Login)
             .EmailAddress()
-            .WithMessage($"Invalid Email");
+            .WithMessage(ExceptionMessages.InvalidEmail);
 
         RuleFor(user => user.Password)
             .NotEmpty()
-            .WithMessage("Password is required");
+            .WithMessage(ExceptionMessages.PasswordRequired);
         RuleFor(user => user.Password)
             .Must(password => password!.ToUpper() != password!.ToLower())
             .MinimumLength(MinimumPasswordLength)
-            .WithMessage("Password is not secure");
+            .WithMessage(ExceptionMessages.PasswordNotSecure);
         RuleFor(user => user.Password)
             .MaximumLength(MaximumPasswordLength)
-            .WithMessage($"Password's length must be less than {MaximumPasswordLength}");
+            .WithMessage(ExceptionMessages.PasswordOverLimit);
     }
 }

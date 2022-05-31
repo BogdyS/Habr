@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Habr.Common.DTO;
+using Habr.Common.Resourses;
 
 namespace Habr.BusinessLogic.Validation;
 
@@ -10,9 +11,9 @@ public class CommentValidator : AbstractValidator<CreateCommentDTO>
     {
         RuleFor(comment => comment.Text)
             .NotEmpty()
-            .WithMessage("The Text is required");
+            .WithMessage(ExceptionMessages.TextRequired);
         RuleFor(comment => comment.Text)
             .MaximumLength(MaxTextLength)
-            .WithMessage($"The Text must be less than {MaxTextLength} symbols");
+            .WithMessage(string.Format(ExceptionMessages.TextOverLimit, MaxTextLength));
     }
 }

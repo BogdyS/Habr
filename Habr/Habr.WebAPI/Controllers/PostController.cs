@@ -28,7 +28,6 @@ namespace Habr.WebAPI.Controllers
         {
             var newPost = await _postService.CreatePostAsync(post);
             return CreatedAtAction(nameof(GetPostAsync), new { id = newPost.Id }, newPost);
-
         }
 
         [HttpGet("posts/{postId:int}")]

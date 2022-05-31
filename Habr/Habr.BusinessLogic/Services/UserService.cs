@@ -5,6 +5,7 @@ using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
+using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -32,12 +33,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (user == null)
             {
-                throw new LoginException("Email is incorrect");
+                throw new LoginException(ExceptionMessages.UserWithEmailNotFound);
             }
 
             if (user.Password != loginData.Password)
             {
-                throw new LoginException("Wrong Email or password");
+                throw new LoginException(ExceptionMessages.LoginError);
             }
 
             return _mapper.Map<UserDTO>(user);
@@ -51,7 +52,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (user == null)
             {
-                throw new NotFoundException("This user doesn't exists");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             return user;
@@ -68,7 +69,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (await IsEmailExistsAsync(newUser.Login))
             {
-                throw new LoginException("Email is already taken");
+                throw new LoginException(ExceptionMessages.EmailTaken);
             }
 
             var user = _mapper.Map<User>(newUser);

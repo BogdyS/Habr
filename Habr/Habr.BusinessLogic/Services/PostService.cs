@@ -4,6 +4,7 @@ using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
+using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +42,7 @@ namespace Habr.BusinessLogic.Servises
         {
             if (await _userService.IsUserExistsAsync(userId) is null)
             {
-                throw new NotFoundException($"User with id = {userId} doesn't exists");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var posts = await _dbContext.Posts
@@ -58,7 +59,7 @@ namespace Habr.BusinessLogic.Servises
         {
             if (await _userService.IsUserExistsAsync(userId) is null)
             {
-                throw new NotFoundException($"User with id = {userId} doesn't exists");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var posts = await _dbContext.Posts
@@ -83,7 +84,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (postEntity == null)
             {
-                throw new NotFoundException("The post doesn't exists");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             var post = _mapper.Map<FullPostDTO>(postEntity);
@@ -105,7 +106,7 @@ namespace Habr.BusinessLogic.Servises
 
             if ((user = await _userService.IsUserExistsAsync(post.UserId)) is null)
             {
-                throw new NotFoundException("User isn't exists");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var entity = _mapper.Map<Post>(post);
@@ -128,17 +129,17 @@ namespace Habr.BusinessLogic.Servises
 
             if (draft == null)
             {
-                throw new NotFoundException("The post doesn't exists");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             if (draft.UserId != userId)
             {
-                throw new AccessException("User can't update another user's post");
+                throw new AccessException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (!draft.IsDraft)
             {
-                throw new AccessException("Post isn't draft");
+                throw new AccessException(ExceptionMessages.PostNotDraft);
             }
 
             var time = DateTime.UtcNow;
@@ -157,30 +158,29 @@ namespace Habr.BusinessLogic.Servises
 
             if (post == null)
             {
-                throw new NotFoundException("The post doesn't exists");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             if (post.UserId != userId)
             {
-                throw new AccessException("User can't update another user's post");
+                throw new AccessException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (post.IsDraft)
             {
-                throw new AccessException("Post is already draft");
+                throw new AccessException(ExceptionMessages.PostAlreadyDraft);
             }
 
             bool hasComments = await _dbContext.Comments.AnyAsync(x => x.PostId == postId);
             if (hasComments)
             {
-                throw new AccessException("User can't remove post with comments to drafts");
+                throw new AccessException(ExceptionMessages.RemovingPostWithComments);
             }
 
             post.Updated = DateTime.UtcNow;
             post.IsDraft = true;
             await _dbContext.SaveChangesAsync();
         }
-
 
         public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId)
         {
@@ -196,17 +196,17 @@ namespace Habr.BusinessLogic.Servises
 
             if (postToUpdate == null)
             {
-                throw new NotFoundException("The post doesn't exists");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             if (postToUpdate.UserId != userId)
             {
-                throw new AccessException("User can't update another user's post");
+                throw new AccessException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (!postToUpdate.IsDraft)
             {
-                throw new AccessException("User can update only drafts");
+                throw new AccessException(ExceptionMessages.UpdatingNotDraftPost);
             }
 
             postToUpdate.Text = post.Text!;
@@ -222,12 +222,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (post == null)
             {
-                throw new NotFoundException("The post doesn't exists");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             if (post.UserId != userId)
             {
-                throw new AccessException("User can't update another user's post");
+                throw new AccessException(ExceptionMessages.AcessToPostDenied);
             }
 
             _dbContext.Posts.Remove(post);

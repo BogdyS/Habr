@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Habr.Common.DTO;
+using Habr.Common.Resourses;
 
 namespace Habr.BusinessLogic.Validation;
 
@@ -12,17 +13,17 @@ public class PostValidator : AbstractValidator<IPost>
     {
         RuleFor(post => post.Title)
             .NotEmpty()
-            .WithMessage("The Title is required");
+            .WithMessage(ExceptionMessages.TitleRequired);
         RuleFor(post => post.Title)
             .MaximumLength(MaxTitleLength)
-            .WithMessage($"The Title must be less than {MaxTitleLength} symbols");
+            .WithMessage(string.Format(ExceptionMessages.TitleOverLimit, MaxTitleLength));
 
         RuleFor(post => post.Text)
             .NotEmpty()
-            .WithMessage("The Text is required");
+            .WithMessage(ExceptionMessages.TextRequired);
         RuleFor(post => post.Text)
             .MaximumLength(MaxTextLength)
-            .WithMessage($"The Text must be less than {MaxTextLength} symbols");
+            .WithMessage(string.Format(ExceptionMessages.TextOverLimit, MaxTextLength));
 
 
     }
