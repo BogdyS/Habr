@@ -181,7 +181,8 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdatePostAsync(UpdatePostDTO post)
+
+        public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId)
         {
             var validationResult = await _postValidator.ValidateAsync(post);
 
@@ -191,14 +192,14 @@ namespace Habr.BusinessLogic.Servises
                 throw new InvalidDataException(error.ErrorMessage, (string)error.AttemptedValue);
             }
 
-            Post? postToUpdate = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == post.PostId);
+            Post? postToUpdate = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == postId);
 
             if (postToUpdate == null)
             {
                 throw new NotFoundException("The post doesn't exists");
             }
 
-            if (postToUpdate.UserId != post.UserId)
+            if (postToUpdate.UserId != userId)
             {
                 throw new AccessException("User can't update another user's post");
             }

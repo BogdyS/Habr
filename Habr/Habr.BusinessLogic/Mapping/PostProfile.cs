@@ -58,10 +58,6 @@ public class PostProfile : Profile
             .ForMember(post => post.Title,
                 options => options.MapFrom(dto => dto.Title))
             .ForMember(post => post.Text,
-                options => options.MapFrom(dto => dto.Text))
-            .ForMember(post => post.Id,
-                options => options.MapFrom(dto => dto.PostId))
-            .ForMember(post => post.UserId,
-                options => options.MapFrom(dto => dto.UserId));
+                options => options.MapFrom(dto => dto.Text));
     }
 }

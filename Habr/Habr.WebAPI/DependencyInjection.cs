@@ -41,4 +41,10 @@ public static class DependencyInjection
         services.AddScoped<IValidator<CreateCommentDTO>, CommentValidator>();
         return services;
     }
+
+    public static IServiceCollection AddFilters(this IServiceCollection services)
+    {
+        services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
+        return services;
+    }
 }

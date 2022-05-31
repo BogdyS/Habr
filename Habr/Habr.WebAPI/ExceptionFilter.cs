@@ -8,29 +8,33 @@ namespace Habr.WebAPI;
 
 public class ExceptionFilter : ExceptionFilterAttribute
 {
-
     public ExceptionFilter()
     {
         
     }
-    public override void OnException(ExceptionContext context)
+
+    public override async Task OnExceptionAsync(ExceptionContext context)
     {
         if (context.Exception is InputException inputException)
         {
             context.HttpContext.Response.StatusCode = inputException.Code;
-            context.Result = new JsonResult(inputException);
+            context.Result = new JsonResult(
+                new InvalidClientDataResponse(inputException.Code, inputException.Message, inputException.Value!));
         }
         else if (context.Exception is BaseException baseException)
         {
             context.HttpContext.Response.StatusCode = baseException.Code;
-            context.Result = new JsonResult(baseException);
+            context.Result = new JsonResult(
+                new ClientErrorResponse(baseException.Code, baseException.Message));
         }
         else
         {
             var exception = context.Exception;
             context.HttpContext.Response.StatusCode = 500;
-            context.Result = new JsonResult(new
-                {Code = 500, Message = exception.Message, StackTrace = exception.StackTrace});
+            context.Result = new JsonResult(
+                new ServerErrorResponse(500, exception.Message, exception.StackTrace!));
         }
+
+        await base.OnExceptionAsync(context);
     }
 }
