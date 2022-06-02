@@ -11,10 +11,12 @@ namespace Habr.WebAPI.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
+        private readonly ILogger<PostController> _logger;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, ILogger<PostController> logger)
         {
             _postService = postService;
+            _logger = logger;
         }
 
         [HttpGet("posts")]
@@ -27,6 +29,9 @@ namespace Habr.WebAPI.Controllers
         public async Task<ActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
             var newPost = await _postService.CreatePostAsync(post);
+
+            _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
+
             return CreatedAtAction(nameof(GetPostAsync), new { id = newPost.Id }, newPost);
         }
 

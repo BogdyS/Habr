@@ -8,25 +8,11 @@ namespace Habr.DataAccess
 {
     public class DataContext : DbContext
     {
-        public static readonly ILoggerFactory ConsoleLoggerFactory =
-            LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Information);
-            });
+        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        private static readonly IConfiguration _configuration =
-            new ConfigurationBuilder().AddJsonFile(@"appsettings.json").Build();
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
-        public  DbSet<Comment> Comments { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseLoggerFactory(ConsoleLoggerFactory);
-
-            optionsBuilder.UseSqlServer(_configuration.GetConnectionString("HabrDatabase"));
-        }
+        public DbSet<Comment> Comments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

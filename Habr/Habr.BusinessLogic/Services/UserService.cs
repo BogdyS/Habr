@@ -9,6 +9,7 @@ using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
@@ -18,7 +19,6 @@ namespace Habr.BusinessLogic.Servises
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IValidator<RegistrationDTO> _userValidator;
-
         public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator)
         {
             _dbContext = dataContext;
