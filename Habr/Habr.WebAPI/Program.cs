@@ -16,7 +16,7 @@ builder.Services.AddAutoMapping();
 builder.Services.AddValidation();
 builder.Services.AddFilters();
 
-builder.Services.AddMvc(options => options.SuppressAsyncSuffixInActionNames = false);
+builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Information);

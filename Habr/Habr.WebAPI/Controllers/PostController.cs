@@ -32,7 +32,7 @@ namespace Habr.WebAPI.Controllers
 
             _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
 
-            return CreatedAtAction(nameof(GetPostAsync), new { id = newPost.Id }, newPost);
+            return CreatedAtAction(nameof(GetPostAsync), new { postId = newPost.Id }, newPost);
         }
 
         [HttpGet("posts/{postId:int}")]

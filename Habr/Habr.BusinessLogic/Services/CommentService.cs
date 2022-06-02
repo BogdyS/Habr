@@ -9,6 +9,7 @@ using System.Linq;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.Common.Resourses;
+using Microsoft.Extensions.Logging;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
@@ -49,7 +50,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new InvalidDataException(error.ErrorMessage, (string)error.AttemptedValue);
             }
 
-            if (commentDto.ParentCommentId == default)
+            if (commentDto.ParentCommentId == null)
             {
                 return await CreateCommentToPostAsync(commentDto);
             }

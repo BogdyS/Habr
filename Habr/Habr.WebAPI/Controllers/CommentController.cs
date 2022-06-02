@@ -10,7 +10,6 @@ namespace Habr.WebAPI.Controllers
     public class CommentController : ControllerBase
     {
         private readonly ICommentService _commentService;
-
         public CommentController(ICommentService commentService)
         {
             _commentService = commentService;
@@ -20,7 +19,7 @@ namespace Habr.WebAPI.Controllers
         public async Task<IActionResult> CreateCommentAsync([FromBody] CreateCommentDTO comment)
         {
             var createdComment = await _commentService.CreateCommentAsync(comment);
-            return CreatedAtAction(nameof(GetCommentsAsync), new { id = createdComment.Id }, createdComment);
+            return CreatedAtAction(nameof(GetCommentsAsync), new { commentId = createdComment.Id }, createdComment);
         }
 
         [HttpGet("comments/{commentId:int}")]
