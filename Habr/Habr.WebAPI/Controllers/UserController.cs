@@ -1,4 +1,5 @@
-﻿using Habr.BusinessLogic.Helpers;
+﻿using AutoMapper;
+using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
@@ -11,12 +12,16 @@ namespace Habr.WebAPI.Controllers
     [Route("api/user-management")]
     public class UserController : ControllerBase
     {
+        private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        private readonly IMapper _mapper;
+        public UserController(IUserService userService, ILogger<UserController> logger, IJwtService jwtService, IMapper mapper)
         {
             _userService = userService;
             _logger = logger;
+            _jwtService = jwtService;
+            _mapper = mapper;
         }
 
         [HttpGet("users/{id:int}")]
@@ -31,9 +36,11 @@ namespace Habr.WebAPI.Controllers
         {
             var user = await _userService.LoginAsync(loginData);
 
+            var token = _jwtService.GetJwt(user);
+
             _logger.LogInformation($"Successful login user login = {loginData.Login}");
 
-            return Ok(user);
+            return Ok(token);
         }
 
         [HttpPost("users/registration")]
@@ -43,7 +50,7 @@ namespace Habr.WebAPI.Controllers
 
             _logger.LogInformation($"Created new user with id = {user.Id}");
 
-            return CreatedAtAction(nameof(GetUserAsync), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(LoginAsync), _mapper.Map<LoginDTO>(user) , user);
         }
     }
 }

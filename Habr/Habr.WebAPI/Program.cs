@@ -1,5 +1,7 @@
-using FluentValidation.AspNetCore;
+using System.Text;
 using Habr.WebAPI;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 
 
@@ -15,6 +17,7 @@ builder.Services.AddDataContext(builder.Configuration);
 builder.Services.AddAutoMapping();
 builder.Services.AddValidation();
 builder.Services.AddFilters();
+builder.Services.AddJwt(builder.Configuration);
 
 builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
 
@@ -31,7 +34,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -23,5 +23,11 @@ public class UserProfile : Profile
                 options => options.MapFrom(dto => dto.Name))
             .ForMember(user => user.Password,
                 options => options.MapFrom(dto => dto.Password));
+
+        CreateMap<User, LoginDTO>()
+            .ForMember(dto => dto.Login,
+                options => options.MapFrom(user => user.Email))
+            .ForMember(dto => dto.Password,
+                options => options.MapFrom(user => user.Password));
     }
 }

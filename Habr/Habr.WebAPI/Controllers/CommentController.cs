@@ -1,10 +1,12 @@
 ﻿using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Habr.WebAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/comment-management")]
     public class CommentController : ControllerBase
