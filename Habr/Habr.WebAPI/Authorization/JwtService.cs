@@ -10,10 +10,12 @@ namespace Habr.WebAPI;
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
-    public JwtService()
+
+    public JwtService(IConfiguration configuration)
     {
-        _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        _configuration = configuration;
     }
+
     public string GetJwt(object userObject)
     {
         var user = (UserDTO)userObject;

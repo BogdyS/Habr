@@ -5,11 +5,9 @@ using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.Common.Resourses;
-using Microsoft.Extensions.Logging;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises

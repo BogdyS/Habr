@@ -1,10 +1,5 @@
-﻿using System.Security.Claims;
-using Habr.BusinessLogic.Helpers;
-using Habr.BusinessLogic.Interfaces;
+﻿using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
-using Habr.Common.Exceptions;
-using Habr.Common.Resourses;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

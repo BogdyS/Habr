@@ -1,7 +1,4 @@
-using System.Text;
 using Habr.WebAPI;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 
 

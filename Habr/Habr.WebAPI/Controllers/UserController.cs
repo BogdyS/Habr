@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
-using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
-using Habr.Common.DTO;
 using Habr.Common.DTO.User;
-using Habr.Common.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Habr.WebAPI.Controllers
