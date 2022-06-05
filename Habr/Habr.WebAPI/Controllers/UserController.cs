@@ -50,7 +50,13 @@ namespace Habr.WebAPI.Controllers
 
             _logger.LogInformation($"Created new user with id = {user.Id}");
 
-            return CreatedAtAction(nameof(LoginAsync), _mapper.Map<LoginDTO>(user) , user);
+            return CreatedAtAction(nameof(LoginAsync),
+                new LoginDTO()
+                {
+                    Login = newUser.Login,
+                    Password = newUser.Password
+                },
+                user);
         }
     }
 }

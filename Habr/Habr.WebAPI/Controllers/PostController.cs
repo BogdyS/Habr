@@ -3,6 +3,7 @@ using Habr.BusinessLogic.Helpers;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
+using Habr.Common.Resourses;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,11 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("posts")]
         public async Task<IActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, post.UserId))
+            {
+                return Forbid();
+            }
+
             var newPost = await _postService.CreatePostAsync(post);
 
             _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
@@ -51,24 +57,33 @@ namespace Habr.WebAPI.Controllers
         [HttpGet("users/{userId:int}/posts")]
         public async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             return Ok(await _postService.GetUserPostsAsync(userId));
         }
 
         [HttpGet("users/{userId:int}/posts/drafts")]
         public async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
         {
-            if (userId.ToString() == HttpContext.User.Claims
-                    .FirstOrDefault(claim => claim.Type == nameof(ClaimTypes.NameIdentifier))?.Value)
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
             {
-                return Ok(await _postService.GetUserDraftsAsync(userId));
+                return Forbid();
             }
 
-            return Forbid();
+            return Ok(await _postService.GetUserDraftsAsync(userId));
         }
 
         [HttpPatch("users/{userId:int}/posts/{postId:int}/public-from-drafts")]
         public async Task<IActionResult> PublicPostFromDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             await _postService.PostFromDraftAsync(postId, userId);
             return Ok();
         }
@@ -76,6 +91,11 @@ namespace Habr.WebAPI.Controllers
         [HttpPatch("users/{userId:int}/posts/{postId:int}/remove-to-drafts")]
         public async Task<IActionResult> RemovePostToDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             await _postService.RemovePostToDraftsAsync(postId, userId);
             return Ok();
         }
@@ -83,6 +103,11 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> DeletePostAsync([FromRoute] int userId, [FromRoute] int postId)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             await _postService.DeletePostAsync(postId, userId);
             return Ok();
         }
@@ -90,6 +115,11 @@ namespace Habr.WebAPI.Controllers
         [HttpPut("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> UpdatePostAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] UpdatePostDTO post)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             await _postService.UpdatePostAsync(post, userId, postId);
             return Ok();
         }
