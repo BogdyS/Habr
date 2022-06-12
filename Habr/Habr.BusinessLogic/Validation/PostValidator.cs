@@ -24,7 +24,5 @@ public class PostValidator : AbstractValidator<IPost>
         RuleFor(post => post.Text)
             .MaximumLength(MaxTextLength)
             .WithMessage(string.Format(ExceptionMessages.TextOverLimit, MaxTextLength));
-
-
     }
 }
