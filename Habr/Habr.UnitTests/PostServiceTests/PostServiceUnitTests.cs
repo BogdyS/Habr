@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
 using Habr.BusinessLogic.Validation;
@@ -11,14 +16,17 @@ using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace Habr.UnitTests.PostServiceTests;
 
 public class PostServiceUnitTests : IDisposable
 {
-    private DataContext _dbContext;
-    private IMapper _mapper;
+    private readonly DataContext _dbContext;
+    private readonly IMapper _mapper;
+    private readonly IValidator<IPost> _postValidator;
+    private readonly IValidator<RegistrationDTO> _userValidator;
     public PostServiceUnitTests()
     {
         _mapper = new Mapper(new MapperConfiguration(
@@ -27,6 +35,19 @@ public class PostServiceUnitTests : IDisposable
                 options.AddProfile(typeof(PostProfile));
                 options.AddProfile(typeof(UserProfile));
             }));
+
+        var postValidatorMock = new Mock<IValidator<IPost>>();
+        postValidatorMock.Setup(validator =>
+                validator.ValidateAsync(It.IsAny<IPost>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult()); //validationResult.IsValid always return true
+        _postValidator = postValidatorMock.Object;
+
+        var userValidatorMock = new Mock<IValidator<RegistrationDTO>>();
+        userValidatorMock.Setup(validator =>
+                validator.ValidateAsync(It.IsAny<RegistrationDTO>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult()); //validationResult.IsValid always return true
+        _userValidator = userValidatorMock.Object;
+
         var options = new DbContextOptionsBuilder<DataContext>().UseInMemoryDatabase(databaseName: "test").Options;
         _dbContext = new DataContext(options);
         _mapper.Map<List<Post>>(TestingPosts()).ForEach(post => _dbContext.Posts.Add(post));
@@ -34,18 +55,16 @@ public class PostServiceUnitTests : IDisposable
         _mapper.Map<List<User>>(TestingUsers()).ForEach(user => _dbContext.Users.Add(user));
         _dbContext.SaveChanges();
     }
+
     [Fact]
     public async void CreatePost_GoodData_ReturnTrue()
     {
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
 
@@ -67,12 +86,10 @@ public class PostServiceUnitTests : IDisposable
         {
             id++;
         }
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = id, IsDraft = false };
 
@@ -87,12 +104,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -110,12 +124,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = users[0].Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -130,12 +141,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -150,12 +158,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -173,12 +178,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = users[0].Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -193,12 +195,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -213,12 +212,9 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
-
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var post = await _dbContext.Posts.FirstAsync();
 
@@ -233,12 +229,10 @@ public class PostServiceUnitTests : IDisposable
     public async void DeletePost_AnotherUser_ThrowsAccessException()
     {
         //Arrange
-        var postValidator = new PostValidator();
-        var userValidator = new UserValidator();
 
-        var userService = new UserService(_dbContext, _mapper, userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator);
 
-        var postService = new PostService(_dbContext, _mapper, userService, postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var post = await _dbContext.Posts.FirstAsync();
         var user = await _dbContext.Users.FirstAsync(u => u.Id != post.UserId);
@@ -258,6 +252,7 @@ public class PostServiceUnitTests : IDisposable
             new CreatingPostDTO() {Text = "Some Text", Title = "Some Title", UserId = 2, IsDraft = true}
         };
     }
+
     public static IEnumerable<RegistrationDTO> TestingUsers()
     {
         return new List<RegistrationDTO>()
