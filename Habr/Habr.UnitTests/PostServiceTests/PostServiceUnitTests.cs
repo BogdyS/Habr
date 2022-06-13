@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
-using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
-using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
