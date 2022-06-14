@@ -2,14 +2,12 @@
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
-using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
 using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises

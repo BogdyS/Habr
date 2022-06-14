@@ -1,10 +1,11 @@
-﻿using Habr.BusinessLogic.Helpers;
-using Habr.BusinessLogic.Interfaces;
+﻿using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Habr.WebAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/comment-management")]
     public class CommentController : ControllerBase
@@ -18,6 +19,11 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("comments")]
         public async Task<IActionResult> CreateCommentAsync([FromBody] CreateCommentDTO comment)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, comment.UserId))
+            {
+                return Forbid();
+            }
+
             var createdComment = await _commentService.CreateCommentAsync(comment);
             return CreatedAtAction(nameof(GetCommentsAsync), new { commentId = createdComment.Id }, createdComment);
         }
@@ -32,6 +38,11 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/comments/{commentId:int}")]
         public async Task<IActionResult> DeleteCommentAsync([FromRoute] int userId, [FromRoute] int commentId)
         {
+            if (!JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId))
+            {
+                return Forbid();
+            }
+
             await _commentService.DeleteCommentAsync(commentId, userId);
             return Ok();
         }
