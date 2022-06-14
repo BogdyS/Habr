@@ -30,8 +30,11 @@ namespace Habr.WebAPI.Controllers
         {
             var newPost = await _postService.CreatePostAsync(post);
 
-            _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
-
+            if (!post.IsDraft)
+            {
+                _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
+            }
+            
             return CreatedAtAction(nameof(GetPostAsync), new { postId = newPost.Id }, newPost);
         }
 
@@ -58,6 +61,7 @@ namespace Habr.WebAPI.Controllers
         public async Task<ActionResult> PublicPostFromDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
             await _postService.PostFromDraftAsync(postId, userId);
+            _logger.LogInformation($"Post published with userId = {userId} ; postId = {postId}");
             return Ok();
         }
 

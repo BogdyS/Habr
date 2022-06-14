@@ -69,7 +69,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment.UserId != userId)
             {
-                throw new AccessException(ExceptionMessages.AcessToCommentDenied);
+                throw new BusinessLogicException(ExceptionMessages.AcessToCommentDenied);
             }
 
             await CascadeDelete(comment);
@@ -108,7 +108,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (!await IsCommentAndPostValidRelationship(commentDto))
             {
-                throw new RelationshipException(ExceptionMessages.InvalidCommentPostRelationship);
+                throw new BusinessLogicException(ExceptionMessages.InvalidCommentPostRelationship);
             }
 
             User? user;
