@@ -116,7 +116,7 @@ public class PostServiceUnitTests : IDisposable
     }
 
     [Fact]
-    public async void PublicPost_AnotherUser_ThrowsAccessException()
+    public async void PublicPost_AnotherUser_ThrowsBusinessLogicException()
     {
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
@@ -129,11 +129,11 @@ public class PostServiceUnitTests : IDisposable
         var post = await postService.CreatePostAsync(newPostDto);
 
         //Assert
-        await Assert.ThrowsAsync<AccessException>(async () => await postService.PostFromDraftAsync(post.Id, users[1].Id));
+        await Assert.ThrowsAsync<BusinessLogicException>(async () => await postService.PostFromDraftAsync(post.Id, users[1].Id));
     }
 
     [Fact]
-    public async void PublicPost_PostNotDraft_ThrowsAccessException()
+    public async void PublicPost_PostNotDraft_ThrowsBusinessLogicException()
     {
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
@@ -146,7 +146,7 @@ public class PostServiceUnitTests : IDisposable
         var post = await postService.CreatePostAsync(newPostDto);
 
         //Assert
-        await Assert.ThrowsAsync<AccessException>(async () => await postService.PostFromDraftAsync(post.Id, user.Id));
+        await Assert.ThrowsAsync<BusinessLogicException>(async () => await postService.PostFromDraftAsync(post.Id, user.Id));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class PostServiceUnitTests : IDisposable
     }
 
     [Fact]
-    public async void PostToDraft_AnotherUser_ThrowsAccessException()
+    public async void PostToDraft_AnotherUser_ThrowsBusinessLogicException()
     {
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
@@ -183,11 +183,11 @@ public class PostServiceUnitTests : IDisposable
         var post = await postService.CreatePostAsync(newPostDto);
 
         //Assert
-        await Assert.ThrowsAsync<AccessException>(async () => await postService.RemovePostToDraftsAsync(post.Id, users[1].Id));
+        await Assert.ThrowsAsync<BusinessLogicException>(async () => await postService.RemovePostToDraftsAsync(post.Id, users[1].Id));
     }
 
     [Fact]
-    public async void PostToDraft_PostAlreadyDraft_ThrowsAccessException()
+    public async void PostToDraft_PostAlreadyDraft_ThrowsBusinessLogicException()
     {
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
@@ -200,7 +200,7 @@ public class PostServiceUnitTests : IDisposable
         var post = await postService.CreatePostAsync(newPostDto);
 
         //Assert
-        await Assert.ThrowsAsync<AccessException>(async () => await postService.RemovePostToDraftsAsync(post.Id, user.Id));
+        await Assert.ThrowsAsync<BusinessLogicException>(async () => await postService.RemovePostToDraftsAsync(post.Id, user.Id));
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class PostServiceUnitTests : IDisposable
     }
 
     [Fact]
-    public async void DeletePost_AnotherUser_ThrowsAccessException()
+    public async void DeletePost_AnotherUser_ThrowsBusinessLogicException()
     {
         //Arrange
 
@@ -234,7 +234,7 @@ public class PostServiceUnitTests : IDisposable
         var post = await _dbContext.Posts.FirstAsync();
         var user = await _dbContext.Users.FirstAsync(u => u.Id != post.UserId);
         //Assert
-        await Assert.ThrowsAsync<AccessException>(
+        await Assert.ThrowsAsync<BusinessLogicException>(
             async () => await postService.DeletePostAsync(post.Id, user.Id));
     }
 
