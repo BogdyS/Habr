@@ -1,6 +1,10 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using FluentValidation;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
+using Habr.BusinessLogic.Validation;
+using Habr.Common.DTO;
+using Habr.Common.DTO.User;
 using Habr.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +31,20 @@ public static class DependencyInjection
     public static IServiceCollection AddAutoMapping(this IServiceCollection services)
     {
         services.AddAutoMapper(typeof(PostProfile).Assembly);
+        return services;
+    }
+
+    public static IServiceCollection AddValidation(this IServiceCollection services)
+    {
+        services.AddScoped<IValidator<IPost>, PostValidator>();
+        services.AddScoped<IValidator<RegistrationDTO>, UserValidator>();
+        services.AddScoped<IValidator<CreateCommentDTO>, CommentValidator>();
+        return services;
+    }
+
+    public static IServiceCollection AddFilters(this IServiceCollection services)
+    {
+        services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
         return services;
     }
 }

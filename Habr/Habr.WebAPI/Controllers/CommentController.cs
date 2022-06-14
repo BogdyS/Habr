@@ -10,7 +10,6 @@ namespace Habr.WebAPI.Controllers
     public class CommentController : ControllerBase
     {
         private readonly ICommentService _commentService;
-
         public CommentController(ICommentService commentService)
         {
             _commentService = commentService;
@@ -19,15 +18,8 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("comments")]
         public async Task<IActionResult> CreateCommentAsync([FromBody] CreateCommentDTO comment)
         {
-            try
-            {
-                var createdComment = await _commentService.CreateCommentAsync(comment);
-                return CreatedAtAction(nameof(GetCommentsAsync), new { id = createdComment.Id}, createdComment);
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
+            var createdComment = await _commentService.CreateCommentAsync(comment);
+            return CreatedAtAction(nameof(GetCommentsAsync), new { commentId = createdComment.Id }, createdComment);
         }
 
         [HttpGet("comments/{commentId:int}")]
@@ -40,15 +32,8 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/comments/{commentId:int}")]
         public async Task<IActionResult> DeleteCommentAsync([FromRoute] int userId, [FromRoute] int commentId)
         {
-            try
-            {
-                await _commentService.DeleteCommentAsync(commentId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
+            await _commentService.DeleteCommentAsync(commentId, userId);
+            return Ok();
         }
     }
 }

@@ -11,10 +11,12 @@ namespace Habr.WebAPI.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
+        private readonly ILogger<PostController> _logger;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, ILogger<PostController> logger)
         {
             _postService = postService;
+            _logger = logger;
         }
 
         [HttpGet("posts")]
@@ -26,111 +28,62 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("posts")]
         public async Task<ActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
-            try
+            var newPost = await _postService.CreatePostAsync(post);
+
+            if (!post.IsDraft)
             {
-                var newPost = await _postService.CreatePostAsync(post);
-                return CreatedAtAction(nameof(GetPostAsync), new { id = newPost.Id }, newPost);
+                _logger.LogInformation($"Post published with userId = {post.UserId} ; postId = {newPost.Id}");
             }
-            catch (InputException exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
+            
+            return CreatedAtAction(nameof(GetPostAsync), new { postId = newPost.Id }, newPost);
         }
 
         [HttpGet("posts/{postId:int}")]
         public async Task<ActionResult<FullPostDTO>> GetPostAsync([FromRoute] int postId)
         {
-            try
-            {
-                var post = await _postService.GetPostWithCommentsAsync(postId);
-                return Ok(post);
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
+            var post = await _postService.GetPostWithCommentsAsync(postId);
+            return Ok(post);
         }
 
         [HttpGet("users/{userId:int}/posts")]
         public async Task<ActionResult<IEnumerable<PostListDTO>?>> GetUserPostsAsync([FromRoute] int userId)
         {
-            try
-            {
-                return Ok(await _postService.GetUserPostsAsync(userId));
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
+            return Ok(await _postService.GetUserPostsAsync(userId));
         }
 
         [HttpGet("users/{userId:int}/posts/drafts")]
         public async Task<ActionResult<IEnumerable<PostDraftDTO>?>> GetUserDraftsAsync([FromRoute] int userId)
         {
-            try
-            {
-                return Ok(await _postService.GetUserDraftsAsync(userId));
-            }
-            catch (SQLException exception)
-            {
-                return NotFound(exception.ToDto());
-            }
+            return Ok(await _postService.GetUserDraftsAsync(userId));
         }
 
         [HttpPatch("users/{userId:int}/posts/{postId:int}/public-from-drafts")]
         public async Task<ActionResult> PublicPostFromDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            try
-            {
-                await _postService.PostFromDraftAsync(postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return NotFound(exception.ToDto());
-            }
+            await _postService.PostFromDraftAsync(postId, userId);
+            _logger.LogInformation($"Post published with userId = {userId} ; postId = {postId}");
+            return Ok();
         }
 
         [HttpPatch("users/{userId:int}/posts/{postId:int}/remove-to-drafts")]
         public async Task<ActionResult> RemovePostToDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            try
-            {
-                await _postService.RemovePostToDraftsAsync(postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return NotFound(exception.ToDto());
-            }
+            await _postService.RemovePostToDraftsAsync(postId, userId);
+            return Ok();
         }
 
         [HttpDelete("users/{userId:int}/posts/{postId:int}")]
         public async Task<ActionResult> DeletePostAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            try
-            {
-                await _postService.DeletePostAsync(postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
+            await _postService.DeletePostAsync(postId, userId);
+            return Ok();
         }
 
         [HttpPut("users/{userId:int}/posts/{postId:int}")]
         public async Task<ActionResult> UpdatePostAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] UpdatePostDTO post)
         {
-            try
-            {
-                await _postService.UpdatePostAsync(post.Title, post.Text, postId, userId);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.ToDto());
-            }
+            await _postService.UpdatePostAsync(post, userId, postId);
+            return Ok();
         }
     }
 }
