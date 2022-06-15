@@ -52,13 +52,12 @@ public class PostProfile : Profile
             .ForMember(post => post.IsDraft,
                 options => options.MapFrom(dto => dto.IsDraft))
             .ForMember(post => post.UserId,
-                options => options.MapFrom(dto=>dto.UserId))
-            .BeforeMap((dto, post) =>
-            {
-                var dateTime = DateTime.UtcNow;
-                post.Created = dateTime;
-                post.Posted = dateTime;
-                post.Updated = dateTime;
-            });
+                options => options.MapFrom(dto => dto.UserId));
+
+        CreateMap<UpdatePostDTO, Post>()
+            .ForMember(post => post.Title,
+                options => options.MapFrom(dto => dto.Title))
+            .ForMember(post => post.Text,
+                options => options.MapFrom(dto => dto.Text));
     }
 }

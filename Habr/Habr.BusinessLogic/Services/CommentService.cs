@@ -7,6 +7,10 @@ using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using AutoMapper.QueryableExtensions;
+using FluentValidation;
+using Habr.Common.Resourses;
+using Microsoft.Extensions.Logging;
+using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
 namespace Habr.BusinessLogic.Servises
 {
@@ -14,11 +18,13 @@ namespace Habr.BusinessLogic.Servises
     {
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IValidator<CreateCommentDTO> _commentValidator;
 
-        public CommentService(DataContext dbContext, IMapper mapper)
+        public CommentService(DataContext dbContext, IMapper mapper, IValidator<CreateCommentDTO> commentValidator)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _commentValidator = commentValidator;
         }
 
         public async Task<CommentDTO> GetCommentAsync(int id)
@@ -29,7 +35,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new SQLException($"Comment with id = {id} doesn't exists");
+                throw new NotFoundException(ExceptionMessages.CommentNotFound);
             }
             
             return comment;
@@ -37,7 +43,14 @@ namespace Habr.BusinessLogic.Servises
 
         public async Task<CommentDTO> CreateCommentAsync(CreateCommentDTO commentDto)
         {
-            if (commentDto.ParentCommentId == default)
+            var validationResult = await _commentValidator.ValidateAsync(commentDto);
+            if (!validationResult.IsValid)
+            {
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, (string)error.AttemptedValue);
+            }
+
+            if (commentDto.ParentCommentId == null)
             {
                 return await CreateCommentToPostAsync(commentDto);
             }
@@ -51,12 +64,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (comment == null)
             {
-                throw new SQLException("Comment not found");
+                throw new NotFoundException(ExceptionMessages.CommentNotFound);
             }
 
             if (comment.UserId != userId)
             {
-                throw new AccessException("User can't delete another user's comment");
+                throw new BusinessLogicException(ExceptionMessages.AcessToCommentDenied);
             }
 
             await CascadeDelete(comment);
@@ -68,13 +81,13 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new SQLException("Post not found");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new SQLException("User not found");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var comment = _mapper.Map<Comment>(commentDto);
@@ -90,18 +103,18 @@ namespace Habr.BusinessLogic.Servises
         {
             if (!await IsPostExistsAsync(commentDto.PostId))
             {
-                throw new SQLException("Post not found");
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
-            if (!await IsCommentAndPostValid(commentDto))
+            if (!await IsCommentAndPostValidRelationship(commentDto))
             {
-                throw new SQLException("Invalid relationship between comment and post");
+                throw new BusinessLogicException(ExceptionMessages.InvalidCommentPostRelationship);
             }
 
             User? user;
             if ((user = await IsUserExistsAsync(commentDto.UserId)) is null)
             {
-                throw new SQLException("User not found");
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
             }
 
             var comment = _mapper.Map<Comment>(commentDto);
@@ -123,7 +136,7 @@ namespace Habr.BusinessLogic.Servises
             return await _dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId);
         }
 
-        private async Task<bool> IsCommentAndPostValid(CreateCommentDTO comment)
+        private async Task<bool> IsCommentAndPostValidRelationship(CreateCommentDTO comment)
         {
             int? parentCommentPostId = (await _dbContext.Comments
                 .Select(c => new { c.PostId, c.Id })

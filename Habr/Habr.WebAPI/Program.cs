@@ -1,4 +1,6 @@
+using FluentValidation.AspNetCore;
 using Habr.WebAPI;
+using NLog.Web;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +13,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddServices();
 builder.Services.AddDataContext(builder.Configuration);
 builder.Services.AddAutoMapping();
-builder.Services.AddMvc(options => options.SuppressAsyncSuffixInActionNames = false);
+builder.Services.AddValidation();
+builder.Services.AddFilters();
+
+builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
+
+builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+builder.Host.UseNLog();
 
 var app = builder.Build();
 
