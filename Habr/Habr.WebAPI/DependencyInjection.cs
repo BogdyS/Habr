@@ -40,7 +40,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddValidation(this IServiceCollection services)
     {
-        services.AddScoped<IValidator<IPost>, PostValidator>();
+        services.AddScoped<IValidator<IPostDTO>, PostValidator>();
         services.AddScoped<IValidator<RegistrationDTO>, UserValidator>();
         services.AddScoped<IValidator<CreateCommentDTO>, CommentValidator>();
         return services;

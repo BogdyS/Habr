@@ -1,6 +1,6 @@
 ﻿namespace Habr.Common.DTO;
 
-public interface IPost
+public interface IPostDTO
 {
     string? Text { get; set; }
     string? Title { get; set; }

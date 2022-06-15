@@ -17,8 +17,8 @@ namespace Habr.BusinessLogic.Servises
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
-        private readonly IValidator<IPost> _postValidator;
-        public PostService(DataContext dbContext, IMapper mapper, IUserService userService, IValidator<IPost> postValidator)
+        private readonly IValidator<IPostDTO> _postValidator;
+        public PostService(DataContext dbContext, IMapper mapper, IUserService userService, IValidator<IPostDTO> postValidator)
         {
             _dbContext = dbContext;
             _mapper = mapper;

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Habr.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/user-management")]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
         private readonly IJwtService _jwtService;
