@@ -31,12 +31,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (user == null)
             {
-                throw new LoginException(ExceptionMessages.UserWithEmailNotFound);
+                throw new BusinessLogicException(ExceptionMessages.UserWithEmailNotFound);
             }
 
             if (user.Password != loginData.Password)
             {
-                throw new LoginException(ExceptionMessages.LoginError);
+                throw new BusinessLogicException(ExceptionMessages.LoginError);
             }
 
             return _mapper.Map<UserDTO>(user);
@@ -67,7 +67,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (await IsEmailExistsAsync(newUser.Login))
             {
-                throw new LoginException(ExceptionMessages.EmailTaken);
+                throw new BusinessLogicException(ExceptionMessages.EmailTaken);
             }
 
             var user = _mapper.Map<User>(newUser);

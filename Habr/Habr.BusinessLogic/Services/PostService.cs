@@ -134,12 +134,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (draft.UserId != userId)
             {
-                throw new AccessException(ExceptionMessages.AcessToPostDenied);
+                throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (!draft.IsDraft)
             {
-                throw new AccessException(ExceptionMessages.PostNotDraft);
+                throw new BusinessLogicException(ExceptionMessages.PostNotDraft);
             }
 
             var time = DateTime.UtcNow;
@@ -163,18 +163,18 @@ namespace Habr.BusinessLogic.Servises
 
             if (post.UserId != userId)
             {
-                throw new AccessException(ExceptionMessages.AcessToPostDenied);
+                throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (post.IsDraft)
             {
-                throw new AccessException(ExceptionMessages.PostAlreadyDraft);
+                throw new BusinessLogicException(ExceptionMessages.PostAlreadyDraft);
             }
 
             bool hasComments = await _dbContext.Comments.AnyAsync(x => x.PostId == postId);
             if (hasComments)
             {
-                throw new AccessException(ExceptionMessages.RemovingPostWithComments);
+                throw new BusinessLogicException(ExceptionMessages.RemovingPostWithComments);
             }
 
             post.Updated = DateTime.UtcNow;
@@ -201,12 +201,12 @@ namespace Habr.BusinessLogic.Servises
 
             if (postToUpdate.UserId != userId)
             {
-                throw new AccessException(ExceptionMessages.AcessToPostDenied);
+                throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }
 
             if (!postToUpdate.IsDraft)
             {
-                throw new AccessException(ExceptionMessages.UpdatingNotDraftPost);
+                throw new BusinessLogicException(ExceptionMessages.UpdatingNotDraftPost);
             }
 
             postToUpdate.Text = post.Text!;
@@ -227,7 +227,7 @@ namespace Habr.BusinessLogic.Servises
 
             if (post.UserId != userId)
             {
-                throw new AccessException(ExceptionMessages.AcessToPostDenied);
+                throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }
 
             _dbContext.Posts.Remove(post);
