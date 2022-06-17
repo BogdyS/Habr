@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using FluentValidation;
+﻿using FluentValidation;
 using Habr.Common.DTO.User;
 using Habr.Common.Resourses;
 

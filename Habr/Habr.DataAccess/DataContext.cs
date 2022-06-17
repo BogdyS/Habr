@@ -1,8 +1,6 @@
 ﻿using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Habr.DataAccess.Configurations;
-using Microsoft.Extensions.Configuration;
 
 namespace Habr.DataAccess
 {

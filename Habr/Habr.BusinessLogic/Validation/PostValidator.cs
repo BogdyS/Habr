@@ -4,7 +4,7 @@ using Habr.Common.Resourses;
 
 namespace Habr.BusinessLogic.Validation;
 
-public class PostValidator : AbstractValidator<IPost>
+public class PostValidator : AbstractValidator<IPostDTO>
 {
     public const int MaxTextLength = 2000;
     public const int MaxTitleLength = 200;
