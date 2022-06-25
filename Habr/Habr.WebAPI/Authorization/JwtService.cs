@@ -24,11 +24,13 @@ public class JwtService : IJwtService
         var claims = new[] {new Claim(nameof(ClaimTypes.NameIdentifier), user.Id.ToString())};
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
+        int lifetimeAccessTokenInHours = int.Parse(_configuration["Jwt:AccessLifetimeInHours"]);
+
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(3),
+            expires: DateTime.UtcNow.AddHours(lifetimeAccessTokenInHours),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -37,8 +39,10 @@ public class JwtService : IJwtService
     public string GetRefreshToken()
     {
         byte[] randomNumber = new byte[64];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomNumber);
+        using var randomNumberGenerator = RandomNumberGenerator.Create();
+        randomNumberGenerator.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
     }
+
+    public DateTime RefreshTokenValidTo => DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshLifetimeInDays"]));
 }

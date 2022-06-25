@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Habr.BusinessLogic.Interfaces;
+using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,16 +10,12 @@ namespace Habr.WebAPI.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
-        private readonly IMapper _mapper;
-        public UserController(IUserService userService, ILogger<UserController> logger, IJwtService jwtService, IMapper mapper)
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
             _logger = logger;
-            _jwtService = jwtService;
-            _mapper = mapper;
         }
 
         [HttpGet("users/{id:int}")]
@@ -31,13 +28,18 @@ namespace Habr.WebAPI.Controllers
         [HttpGet("users/login")]
         public async Task<IActionResult> LoginAsync([FromQuery] LoginDTO loginData)
         {
-            var user = await _userService.LoginAsync(loginData);
-
-            var token = _jwtService.GetJwt(user);
+            var response = await _userService.LoginAsync(loginData);
 
             _logger.LogInformation($"Successful login user login = {loginData.Login}");
 
-            return Ok(token);
+            return Ok(response);
+        }
+
+        [HttpPost("users/refresh")]
+        public async Task<IActionResult> RefreshAsync([FromBody] RefreshDTO dto)
+        {
+            var response = await _userService.RefreshTokensAsync(dto);
+            return Ok(response);
         }
 
         [HttpPost("users/registration")]

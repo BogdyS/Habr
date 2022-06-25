@@ -19,7 +19,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
         builder.HasIndex(x => x.Email)
             .IsUnique();
         builder.Property(x => x.Password)
-            .HasMaxLength(50)
             .IsRequired();
+        builder.Property(x => x.RefreshToken)
+            .IsRequired(false);
+        builder.Property(x => x.RefreshTokenActiveTo)
+            .IsRequired(false);
     }
 }
