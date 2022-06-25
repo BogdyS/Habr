@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.BusinessLogic", "Habr.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Habr.WebAPI", "Habr.WebAPI\Habr.WebAPI.csproj", "{CFD27E95-9C25-4714-A820-80CFC63AE726}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habr.UnitTests", "Habr.UnitTests\Habr.UnitTests.csproj", "{87A02C83-30D7-451E-8362-BB3546553185}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{CFD27E95-9C25-4714-A820-80CFC63AE726}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFD27E95-9C25-4714-A820-80CFC63AE726}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFD27E95-9C25-4714-A820-80CFC63AE726}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87A02C83-30D7-451E-8362-BB3546553185}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87A02C83-30D7-451E-8362-BB3546553185}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87A02C83-30D7-451E-8362-BB3546553185}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87A02C83-30D7-451E-8362-BB3546553185}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
