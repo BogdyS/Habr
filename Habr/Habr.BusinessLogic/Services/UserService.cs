@@ -99,6 +99,22 @@ namespace Habr.BusinessLogic.Servises
             };
         }
 
+        public async Task ExitAsync(int userId)
+        {
+            var user = await _dbContext.Users
+                .SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            user.RefreshToken = null;
+            user.RefreshTokenActiveTo = null;
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<UserDTO> GetUserAsync(int userId)
         {
             var user = await _dbContext.Users

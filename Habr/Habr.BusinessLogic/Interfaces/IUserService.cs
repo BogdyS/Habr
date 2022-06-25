@@ -10,5 +10,6 @@ public interface IUserService
     Task<UserDTO> GetUserAsync(int userId); 
     Task<UserDTO> RegisterAsync(RegistrationDTO newUser);
     Task<TokenResponse> RefreshTokensAsync(RefreshDTO refreshDto);
+    Task ExitAsync(int userId);
     Task<User?> IsUserExistsAsync(int userId);
 }

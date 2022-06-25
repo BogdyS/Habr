@@ -13,4 +13,9 @@ public static class JwtHelper
             throw new ForbiddenException("Forbidden");
         }
     }
+
+    public static int GetClaimUserId(IEnumerable<Claim> claims)
+    {
+        return int.Parse(claims.FirstOrDefault(claim => claim.Type == nameof(ClaimTypes.NameIdentifier))?.Value!);
+    }
 }

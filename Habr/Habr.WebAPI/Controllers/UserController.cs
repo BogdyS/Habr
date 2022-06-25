@@ -2,6 +2,7 @@
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Habr.WebAPI.Controllers
@@ -40,6 +41,15 @@ namespace Habr.WebAPI.Controllers
         {
             var response = await _userService.RefreshTokensAsync(dto);
             return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("users/exit")]
+        public async Task<IActionResult> ExitAsync()
+        {
+            int userId = JwtHelper.GetClaimUserId(HttpContext.User.Claims);
+            await _userService.ExitAsync(userId);
+            return Ok();
         }
 
         [HttpPost("users/registration")]
