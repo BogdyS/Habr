@@ -7,6 +7,7 @@ using Habr.Common.Exceptions;
 using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
@@ -17,11 +18,13 @@ namespace Habr.BusinessLogic.Servises
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IValidator<RegistrationDTO> _userValidator;
-        public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator)
+        private readonly IPasswordHasher<IUserDTO> _hasher;
+        public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator, IPasswordHasher<IUserDTO> hasher)
         {
             _dbContext = dataContext;
             _mapper = mapper;
             _userValidator = userValidator;
+            _hasher = hasher;
         }
 
         public async Task<UserDTO> LoginAsync(LoginDTO loginData)
@@ -34,7 +37,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new BusinessLogicException(ExceptionMessages.UserWithEmailNotFound);
             }
 
-            if (user.Password != loginData.Password)
+            if (_hasher.VerifyHashedPassword(loginData, user.Password, loginData.Password) == PasswordVerificationResult.Failed)
             {
                 throw new BusinessLogicException(ExceptionMessages.LoginError);
             }
@@ -70,6 +73,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new BusinessLogicException(ExceptionMessages.EmailTaken);
             }
 
+            newUser.Password = _hasher.HashPassword(newUser, newUser.Password);
             var user = _mapper.Map<User>(newUser);
 
             _dbContext.Users.Add(user);
