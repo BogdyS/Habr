@@ -30,7 +30,7 @@ namespace Habr.UnitTests
 
         [Theory]
         [MemberData(nameof(PostsForOneArgumentNullTest))]
-        public void IsValidPost_OneArgumentNull_ReturnsFalse(IPost post)
+        public void IsValidPost_OneArgumentNull_ReturnsFalse(IPostDTO post)
         {
             //Arrange
             var postValidator = new PostValidator();
@@ -45,7 +45,7 @@ namespace Habr.UnitTests
 
         [Theory]
         [MemberData(nameof(PostsForOneArgumentTooBigTest))]
-        public void IsValidPost_OneArgumentTooBig_ReturnsFalse(IPost post)
+        public void IsValidPost_OneArgumentTooBig_ReturnsFalse(IPostDTO post)
         {
             //Arrange
             var postValidator = new PostValidator();

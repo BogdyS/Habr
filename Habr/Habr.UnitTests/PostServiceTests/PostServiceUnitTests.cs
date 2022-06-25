@@ -22,7 +22,7 @@ public class PostServiceUnitTests : IDisposable
 {
     private readonly DataContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly IValidator<IPost> _postValidator;
+    private readonly IValidator<IPostDTO> _postValidator;
     private readonly IValidator<RegistrationDTO> _userValidator;
     public PostServiceUnitTests()
     {
@@ -33,9 +33,9 @@ public class PostServiceUnitTests : IDisposable
                 options.AddProfile(typeof(UserProfile));
             }));
 
-        var postValidatorMock = new Mock<IValidator<IPost>>();
+        var postValidatorMock = new Mock<IValidator<IPostDTO>>();
         postValidatorMock.Setup(validator =>
-                validator.ValidateAsync(It.IsAny<IPost>(), It.IsAny<CancellationToken>()))
+                validator.ValidateAsync(It.IsAny<IPostDTO>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult()); //validationResult.IsValid always return true
         _postValidator = postValidatorMock.Object;
 
