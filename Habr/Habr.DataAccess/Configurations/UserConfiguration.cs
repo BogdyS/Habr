@@ -24,5 +24,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
             .IsRequired(false);
         builder.Property(x => x.RefreshTokenActiveTo)
             .IsRequired(false);
+        builder.Property(x => x.Role)
+            .IsRequired()
+            .HasDefaultValue(RolesEnum.User);
     }
 }
