@@ -32,12 +32,29 @@ namespace Habr.WebAPI.Controllers
             return Ok(comment);
         }
 
+        [HttpPut("users/{userId:int}/comments/{commentId:int}")]
+        public async Task<IActionResult> UpdateCommentAsync([FromRoute] int userId, [FromRoute] int commentId, [FromBody] UpdateCommentDTO commentDto)
+        {
+            var claims = HttpContext.User.Claims;
+
+            JwtHelper.IsJwtIdClaimValid(claims, userId);
+
+            var role = JwtHelper.GetClaimRole(claims);
+
+            await _commentService.UpdateCommentAsync(commentDto.Text!, commentId, userId, role);
+            return Ok();
+        }
+
         [HttpDelete("users/{userId:int}/comments/{commentId:int}")]
         public async Task<IActionResult> DeleteCommentAsync([FromRoute] int userId, [FromRoute] int commentId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            var claims = HttpContext.User.Claims;
 
-            await _commentService.DeleteCommentAsync(commentId, userId);
+            JwtHelper.IsJwtIdClaimValid(claims, userId);
+
+            var role = JwtHelper.GetClaimRole(claims);
+
+            await _commentService.DeleteCommentAsync(commentId, userId, role);
             return Ok();
         }
     }

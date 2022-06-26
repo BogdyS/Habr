@@ -8,6 +8,7 @@ using FluentValidation.Results;
 using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
+using Habr.Common;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
@@ -239,7 +240,7 @@ public class PostServiceUnitTests : IDisposable
         var post = await _dbContext.Posts.FirstAsync();
 
         //Act
-        await postService.DeletePostAsync(post.Id, user.Id);
+        await postService.DeletePostAsync(post.Id, user.Id, RolesEnum.User);
 
         //Assert
         await Assert.ThrowsAsync<NotFoundException>(async () => await postService.GetPostWithCommentsAsync(post.Id));
@@ -258,7 +259,7 @@ public class PostServiceUnitTests : IDisposable
         var user = await _dbContext.Users.FirstAsync(u => u.Id != post.UserId);
         //Assert
         await Assert.ThrowsAsync<BusinessLogicException>(
-            async () => await postService.DeletePostAsync(post.Id, user.Id));
+            async () => await postService.DeletePostAsync(post.Id, user.Id, RolesEnum.User));
     }
 
     public static IEnumerable<CreatingPostDTO> TestingPosts()

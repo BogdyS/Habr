@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
+using Habr.Common;
 using Habr.Common.DTO;
 using Habr.Common.Exceptions;
 using Habr.Common.Resourses;
@@ -182,7 +183,7 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId)
+        public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId, RolesEnum role)
         {
             var validationResult = await _postValidator.ValidateAsync(post);
 
@@ -199,7 +200,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
-            if (postToUpdate.UserId != userId)
+            if (postToUpdate.UserId != userId && role != RolesEnum.Admin)
             {
                 throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }
@@ -216,7 +217,7 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeletePostAsync(int postId, int userId)
+        public async Task DeletePostAsync(int postId, int userId, RolesEnum role)
         {
             Post? post = await _dbContext.Posts.SingleOrDefaultAsync(p => p.Id == postId);
 
@@ -225,7 +226,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new NotFoundException(ExceptionMessages.PostNotFound);
             }
 
-            if (post.UserId != userId)
+            if (post.UserId != userId && role != RolesEnum.Admin)
             {
                 throw new BusinessLogicException(ExceptionMessages.AcessToPostDenied);
             }

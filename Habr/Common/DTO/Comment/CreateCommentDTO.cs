@@ -1,6 +1,6 @@
 ﻿namespace Habr.Common.DTO;
 
-public class CreateCommentDTO
+public class CreateCommentDTO : ICommentDTO
 {
     public string? Text { get; set; }
     public int UserId { get; set; }

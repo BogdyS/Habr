@@ -4,7 +4,7 @@ using Habr.Common.Resourses;
 
 namespace Habr.BusinessLogic.Validation;
 
-public class CommentValidator : AbstractValidator<CreateCommentDTO>
+public class CommentValidator : AbstractValidator<ICommentDTO>
 {
     public const int MaxTextLength = 200;
     public CommentValidator()

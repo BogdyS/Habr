@@ -87,18 +87,26 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> DeletePostAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            var claims = HttpContext.User.Claims;
 
-            await _postService.DeletePostAsync(postId, userId);
+            JwtHelper.IsJwtIdClaimValid(claims, userId);
+
+            var role = JwtHelper.GetClaimRole(claims);
+
+            await _postService.DeletePostAsync(postId, userId, role);
             return Ok();
         }
 
         [HttpPut("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> UpdatePostAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] UpdatePostDTO post)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            var claims = HttpContext.User.Claims;
 
-            await _postService.UpdatePostAsync(post, userId, postId);
+            JwtHelper.IsJwtIdClaimValid(claims, userId);
+
+            var role = JwtHelper.GetClaimRole(claims);
+
+            await _postService.UpdatePostAsync(post, userId, postId, role);
             return Ok();
         }
     }
