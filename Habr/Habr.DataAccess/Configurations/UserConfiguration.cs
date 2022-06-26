@@ -1,4 +1,5 @@
-﻿using Habr.DataAccess.Entities;
+﻿using Habr.Common;
+using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

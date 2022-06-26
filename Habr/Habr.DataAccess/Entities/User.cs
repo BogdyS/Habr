@@ -1,4 +1,6 @@
-﻿namespace Habr.DataAccess.Entities
+﻿using Habr.Common;
+
+namespace Habr.DataAccess.Entities
 {
     public class User
     {

@@ -14,7 +14,9 @@ public class UserProfile : Profile
             .ForMember(dto => dto.Email,
                 options => options.MapFrom(user => user.Email))
             .ForMember(dto => dto.Name,
-                options => options.MapFrom(user => user.Name));
+                options => options.MapFrom(user => user.Name))
+            .ForMember(dto => dto.Role,
+                options => options.MapFrom(user => user.Role));
 
         CreateMap<RegistrationDTO, User>()
             .ForMember(user => user.Email,

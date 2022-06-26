@@ -21,7 +21,11 @@ public class JwtService : IJwtService
     {
         var user = (UserDTO)userObject;
 
-        var claims = new[] {new Claim(nameof(ClaimTypes.NameIdentifier), user.Id.ToString())};
+        var claims = new[]
+        {
+            new Claim(nameof(ClaimTypes.NameIdentifier), user.Id.ToString()),
+            new Claim(nameof(ClaimTypes.Role), user.Role.ToString())
+        };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
         int lifetimeAccessTokenInHours = int.Parse(_configuration["Jwt:AccessLifetimeInHours"]);
