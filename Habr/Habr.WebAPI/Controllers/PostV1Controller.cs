@@ -8,13 +8,13 @@ namespace Habr.WebAPI.Controllers
     [Authorize]
     [ApiController]
     [ApiVersion("1", Deprecated = true)]
-    [Route("api/v{version:apiVersion}post")]
-    public class PostController : HabrController
+    [Route("api/v{version:apiVersion}/post")]
+    public class PostV1Controller : HabrController
     {
-        private readonly IPostService _postService;
-        private readonly ILogger<PostController> _logger;
+        protected readonly IPostService _postService;
+        protected readonly ILogger<PostV1Controller> _logger;
 
-        public PostController(IPostService postService, ILogger<PostController> logger)
+        public PostV1Controller(IPostService postService, ILogger<PostV1Controller> logger)
         {
             _postService = postService;
             _logger = logger;
@@ -22,9 +22,9 @@ namespace Habr.WebAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("posts")]
-        public async Task<IActionResult> GetAllPostsAsync()
+        public virtual async Task<IActionResult> GetAllPostsAsync()
         {
-            return Ok(await _postService.GetAllPostsAsync());
+            return Ok(await _postService.GetAllPostsV1Async());
         }
 
         [HttpPost("posts")]

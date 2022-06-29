@@ -19,6 +19,12 @@ builder.Services.AddVersions();
 
 builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
 
+builder.Services.AddVersionedApiExplorer(setup =>
+{
+    setup.GroupNameFormat = "'v'VVV";
+    setup.SubstituteApiVersionInUrl = false;
+});
+
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 builder.Host.UseNLog();

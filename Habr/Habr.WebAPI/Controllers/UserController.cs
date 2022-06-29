@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Habr.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/user")]
+    [ApiVersion("1")]
+    [ApiVersion("2")]
+    [Route("api/v{version:apiVersion}/user")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

@@ -7,7 +7,9 @@ namespace Habr.WebAPI.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/comment")]
+    [ApiVersion("1")]
+    [ApiVersion("2")]
+    [Route("api/v{version:apiVersion}/comment")]
     public class CommentController : HabrController
     {
         private readonly ICommentService _commentService;

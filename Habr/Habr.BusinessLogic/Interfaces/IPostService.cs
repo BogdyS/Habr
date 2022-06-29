@@ -5,8 +5,9 @@ namespace Habr.BusinessLogic.Interfaces;
 
 public interface IPostService
 {
-    Task<IEnumerable<PostListDTO>?> GetAllPostsAsync();
-    Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId);
+    Task<IEnumerable<PostListDtoV1>?> GetAllPostsV1Async();
+    Task<IEnumerable<PostListDtoV2>> GetAllPostsV2Async();
+    Task<IEnumerable<PostListDtoV1>?> GetUserPostsAsync(int userId);
     Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId);
     Task<FullPostDTO> GetPostWithCommentsAsync(int postId);
     Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post);

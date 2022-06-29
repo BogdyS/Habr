@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTO\User\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Resourses\ExceptionMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
