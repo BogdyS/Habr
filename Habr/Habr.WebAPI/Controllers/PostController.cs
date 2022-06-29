@@ -7,7 +7,8 @@ namespace Habr.WebAPI.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/post")]
+    [ApiVersion("1", Deprecated = true)]
+    [Route("api/v{version:apiVersion}post")]
     public class PostController : HabrController
     {
         private readonly IPostService _postService;

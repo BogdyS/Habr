@@ -15,6 +15,7 @@ builder.Services.AddAutoMapping();
 builder.Services.AddValidation();
 builder.Services.AddFilters();
 builder.Services.AddJwt(builder.Configuration);
+builder.Services.AddVersions();
 
 builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
 
