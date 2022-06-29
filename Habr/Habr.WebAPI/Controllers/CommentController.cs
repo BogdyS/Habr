@@ -8,7 +8,7 @@ namespace Habr.WebAPI.Controllers
     [Authorize]
     [ApiController]
     [Route("api/comment")]
-    public class CommentController : ControllerBase
+    public class CommentController : HabrController
     {
         private readonly ICommentService _commentService;
         public CommentController(ICommentService commentService)
@@ -19,7 +19,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("comments")]
         public async Task<IActionResult> CreateCommentAsync([FromBody] CreateCommentDTO comment)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, comment.UserId);
+            CheckClaimId(HttpContext.User.Claims, comment.UserId);
 
             var createdComment = await _commentService.CreateCommentAsync(comment);
             return CreatedAtAction(nameof(GetCommentsAsync), new { commentId = createdComment.Id }, createdComment);
@@ -35,11 +35,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPut("users/{userId:int}/comments/{commentId:int}")]
         public async Task<IActionResult> UpdateCommentAsync([FromRoute] int userId, [FromRoute] int commentId, [FromBody] UpdateCommentDTO commentDto)
         {
-            var claims = HttpContext.User.Claims;
-
-            JwtHelper.IsJwtIdClaimValid(claims, userId);
-
-            var role = JwtHelper.GetClaimRole(claims);
+            var role = GetUserRole(HttpContext.User.Claims, userId);
 
             await _commentService.UpdateCommentAsync(commentDto.Text!, commentId, userId, role);
             return Ok();
@@ -48,11 +44,7 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/comments/{commentId:int}")]
         public async Task<IActionResult> DeleteCommentAsync([FromRoute] int userId, [FromRoute] int commentId)
         {
-            var claims = HttpContext.User.Claims;
-
-            JwtHelper.IsJwtIdClaimValid(claims, userId);
-
-            var role = JwtHelper.GetClaimRole(claims);
+            var role = GetUserRole(HttpContext.User.Claims, userId);
 
             await _commentService.DeleteCommentAsync(commentId, userId, role);
             return Ok();

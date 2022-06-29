@@ -8,7 +8,7 @@ namespace Habr.WebAPI.Controllers
     [Authorize]
     [ApiController]
     [Route("api/post")]
-    public class PostController : ControllerBase
+    public class PostController : HabrController
     {
         private readonly IPostService _postService;
         private readonly ILogger<PostController> _logger;
@@ -29,7 +29,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPost("posts")]
         public async Task<IActionResult> CreatePostAsync([FromBody] CreatingPostDTO post)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, post.UserId);
+            CheckClaimId(HttpContext.User.Claims, post.UserId);
 
             var newPost = await _postService.CreatePostAsync(post);
 
@@ -52,7 +52,7 @@ namespace Habr.WebAPI.Controllers
         [HttpGet("users/{userId:int}/posts")]
         public async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            CheckClaimId(HttpContext.User.Claims, userId);
 
             return Ok(await _postService.GetUserPostsAsync(userId));
         }
@@ -60,7 +60,7 @@ namespace Habr.WebAPI.Controllers
         [HttpGet("users/{userId:int}/posts/drafts")]
         public async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            CheckClaimId(HttpContext.User.Claims, userId);
 
             return Ok(await _postService.GetUserDraftsAsync(userId));
         }
@@ -68,7 +68,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPatch("users/{userId:int}/posts/{postId:int}/public-from-drafts")]
         public async Task<IActionResult> PublicPostFromDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            CheckClaimId(HttpContext.User.Claims, userId);
 
             await _postService.PostFromDraftAsync(postId, userId);
             _logger.LogInformation($"Post published with userId = {userId} ; postId = {postId}");
@@ -78,7 +78,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPatch("users/{userId:int}/posts/{postId:int}/remove-to-drafts")]
         public async Task<IActionResult> RemovePostToDraftsAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            JwtHelper.IsJwtIdClaimValid(HttpContext.User.Claims, userId);
+            CheckClaimId(HttpContext.User.Claims, userId);
 
             await _postService.RemovePostToDraftsAsync(postId, userId);
             return Ok();
@@ -87,11 +87,7 @@ namespace Habr.WebAPI.Controllers
         [HttpDelete("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> DeletePostAsync([FromRoute] int userId, [FromRoute] int postId)
         {
-            var claims = HttpContext.User.Claims;
-
-            JwtHelper.IsJwtIdClaimValid(claims, userId);
-
-            var role = JwtHelper.GetClaimRole(claims);
+            var role = GetUserRole(HttpContext.User.Claims, userId);
 
             await _postService.DeletePostAsync(postId, userId, role);
             return Ok();
@@ -100,11 +96,7 @@ namespace Habr.WebAPI.Controllers
         [HttpPut("users/{userId:int}/posts/{postId:int}")]
         public async Task<IActionResult> UpdatePostAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] UpdatePostDTO post)
         {
-            var claims = HttpContext.User.Claims;
-
-            JwtHelper.IsJwtIdClaimValid(claims, userId);
-
-            var role = JwtHelper.GetClaimRole(claims);
+            var role = GetUserRole(HttpContext.User.Claims, userId);
 
             await _postService.UpdatePostAsync(post, userId, postId, role);
             return Ok();
