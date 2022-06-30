@@ -16,6 +16,7 @@ public class SwaggerOptions : IConfigureNamedOptions<SwaggerGenOptions>
 
     public void Configure(SwaggerGenOptions options)
     {
+        options.DocumentFilter<SwaggerDocumentFilter>();
         foreach (var description in provider.ApiVersionDescriptions)
         {
             options.SwaggerDoc(

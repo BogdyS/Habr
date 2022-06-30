@@ -10,6 +10,7 @@ namespace Habr.WebAPI.Controllers
     [ApiController]
     [ApiVersion("1", Deprecated = true)]
     [Route("api/v{version:apiVersion}/post")]
+    [Route("api/post")]
     [Tags("Post")]
     public class PostV1Controller : HabrController
     {

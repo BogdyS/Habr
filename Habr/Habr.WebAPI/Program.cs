@@ -1,4 +1,5 @@
 using Habr.WebAPI;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using NLog.Web;
 
@@ -23,6 +24,8 @@ builder.Services.AddVersionedApiExplorer(setup =>
 {
     setup.GroupNameFormat = "'v'VVV";
     setup.SubstituteApiVersionInUrl = true;
+    setup.AssumeDefaultVersionWhenUnspecified = true;
+    setup.DefaultApiVersion = new ApiVersion(1, 0);
 });
 builder.Services.ConfigureOptions<SwaggerOptions>();
 builder.Services.AddSwaggerGen();
