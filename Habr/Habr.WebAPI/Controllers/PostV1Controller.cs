@@ -1,4 +1,5 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using System.ComponentModel;
+using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace Habr.WebAPI.Controllers
     [ApiController]
     [ApiVersion("1", Deprecated = true)]
     [Route("api/v{version:apiVersion}/post")]
+    [Tags("Post")]
     public class PostV1Controller : HabrController
     {
         protected readonly IPostService _postService;

@@ -1,4 +1,5 @@
 using Habr.WebAPI;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using NLog.Web;
 
 
@@ -7,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddServices();
 builder.Services.AddDataContext(builder.Configuration);
@@ -22,8 +22,10 @@ builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNa
 builder.Services.AddVersionedApiExplorer(setup =>
 {
     setup.GroupNameFormat = "'v'VVV";
-    setup.SubstituteApiVersionInUrl = false;
+    setup.SubstituteApiVersionInUrl = true;
 });
+builder.Services.ConfigureOptions<SwaggerOptions>();
+builder.Services.AddSwaggerGen();
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -34,7 +36,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in provider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/v{description.ApiVersion}/swagger.json", $"version {description.ApiVersion}");
+        }
+    });
 }
 
 app.UseHttpsRedirection();

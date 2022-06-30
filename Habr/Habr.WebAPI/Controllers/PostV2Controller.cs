@@ -1,4 +1,5 @@
-﻿using Habr.BusinessLogic.Interfaces;
+﻿using System.ComponentModel;
+using Habr.BusinessLogic.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace Habr.WebAPI.Controllers
     [ApiController]
     [ApiVersion("2")]
     [Route("api/v{version:apiVersion}/post")]
+    [Tags("Post")]
     public class PostV2Controller : PostV1Controller
     {
         public PostV2Controller(IPostService postService, ILogger<PostV1Controller> logger) : base(postService, logger) { }
@@ -18,7 +20,5 @@ namespace Habr.WebAPI.Controllers
         {
             return Ok(await _postService.GetAllPostsV2Async());
         }
-
-
     }
 }
