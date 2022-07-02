@@ -7,17 +7,17 @@ namespace Habr.WebAPI;
 
 public class SwaggerOptions : IConfigureNamedOptions<SwaggerGenOptions>
 {
-    private readonly IApiVersionDescriptionProvider provider;
+    private readonly IApiVersionDescriptionProvider _provider;
 
     public SwaggerOptions(IApiVersionDescriptionProvider provider)
     {
-        this.provider = provider;
+        _provider = provider;
     }
 
     public void Configure(SwaggerGenOptions options)
     {
         options.DocumentFilter<SwaggerDocumentFilter>();
-        foreach (var description in provider.ApiVersionDescriptions)
+        foreach (var description in _provider.ApiVersionDescriptions)
         {
             options.SwaggerDoc(
                 description.GroupName,
