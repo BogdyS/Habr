@@ -4,6 +4,7 @@ using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common;
 using Habr.Common.DTO;
+using Habr.Common.DTO.Pagination;
 using Habr.Common.Exceptions;
 using Habr.Common.Resourses;
 using Habr.DataAccess;
@@ -49,6 +50,30 @@ namespace Habr.BusinessLogic.Servises
                 .ToListAsync();
 
             return posts;
+        }
+
+        public async Task<PaginatedDTO<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize)
+        {
+            int count = await _dbContext.Posts
+                .Where(p => !p.IsDraft)
+                .CountAsync();
+
+            if (count - pageSize < pageSize * pageNumber) //count of pages less then requested page number
+            {
+                throw new BusinessLogicException(ExceptionMessages.PageNumberNotExists);
+            }
+
+            var posts = await _dbContext.Posts
+                .Where(p => !p.IsDraft)
+                .Include(p => p.User)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            var response = new PaginatedDTO<PostListDtoV2>(posts, count, pageSize, pageNumber);
+            return response;
+
         }
 
         public async Task<IEnumerable<PostListDtoV1>?> GetUserPostsAsync(int userId)

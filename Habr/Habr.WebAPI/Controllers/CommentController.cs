@@ -9,6 +9,7 @@ namespace Habr.WebAPI.Controllers
     [ApiController]
     [ApiVersion("1", Deprecated = true)]
     [ApiVersion("2")]
+    [ApiVersion("3")]
     [Route("api/v{version:apiVersion}/comment")]
     [Route("api/comment")]
     public class CommentController : HabrController

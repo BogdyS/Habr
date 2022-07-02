@@ -160,6 +160,15 @@ namespace Habr.Common.Resourses {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Page number invalid.
+        /// </summary>
+        public static string PageNumberNotExists {
+            get {
+                return ResourceManager.GetString("PageNumberNotExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Password is not secure.
         /// </summary>
         public static string PasswordNotSecure {
