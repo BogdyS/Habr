@@ -54,7 +54,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpGet("users/{userId:int}/posts")]
-        public async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
+        public virtual async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
         {
             CheckClaimId(HttpContext.User.Claims, userId);
 
@@ -62,7 +62,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpGet("users/{userId:int}/posts/drafts")]
-        public async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
+        public virtual async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
         {
             CheckClaimId(HttpContext.User.Claims, userId);
 

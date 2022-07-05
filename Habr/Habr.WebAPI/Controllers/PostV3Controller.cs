@@ -18,9 +18,11 @@ namespace Habr.WebAPI.Controllers
             IConfiguration configuration) : base(postService, logger)
         {
             _configuration = configuration;
+            _pageSize = int.Parse(_configuration["Posts:PageSize"]);
         }
 
         private readonly IConfiguration _configuration;
+        private readonly int _pageSize;
 
         [ApiExplorerSettings(IgnoreApi = true)]
         [NonAction]
@@ -29,13 +31,41 @@ namespace Habr.WebAPI.Controllers
             throw new NotImplementedException();
         }
 
-        [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [NonAction]
+        public override Task<IActionResult> GetUserPostsAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [NonAction]
+        public override Task<IActionResult> GetUserDraftsAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
         [HttpGet("posts")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllPostsAsync([FromQuery] int pageNumber)
         {
-            int pageSize = int.Parse(_configuration["Posts:PageSize"]);
-            var postPage =await _postService.GetAllPostsPageAsync(pageNumber, pageSize);
-            return Ok(postPage);
+            return Ok(await _postService.GetAllPostsPageAsync(pageNumber, _pageSize));
         }
+
+        [HttpGet("users/{userId:int}/posts")]
+        public async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId, [FromQuery] int pageNumber)
+        {
+            CheckClaimId(HttpContext.User.Claims, userId);
+
+            return Ok(await _postService.GetUserPostsPageAsync(userId, pageNumber, _pageSize));
+        }
+
+        [HttpGet("users/{userId:int}/posts/drafts")]
+        public virtual async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId, [FromQuery] int pageNumber)
+        {
+            CheckClaimId(HttpContext.User.Claims, userId);
+
+            return Ok(await _postService.GetUserDraftsPageAsync(userId, pageNumber, _pageSize));
+        }
+
     }
 }

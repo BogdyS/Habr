@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
+using Habr.BusinessLogic.Validation;
 using Habr.Common;
 using Habr.Common.DTO;
 using Habr.Common.DTO.Pagination;
@@ -52,30 +53,6 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
-        public async Task<PaginatedDTO<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize)
-        {
-            int count = await _dbContext.Posts
-                .Where(p => !p.IsDraft)
-                .CountAsync();
-
-            if (count - pageSize < pageSize * pageNumber) //count of pages less then requested page number
-            {
-                throw new BusinessLogicException(ExceptionMessages.PageNumberNotExists);
-            }
-
-            var posts = await _dbContext.Posts
-                .Where(p => !p.IsDraft)
-                .Include(p => p.User)
-                .Skip(pageNumber * pageSize)
-                .Take(pageSize)
-                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-
-            var response = new PaginatedDTO<PostListDtoV2>(posts, count, pageSize, pageNumber);
-            return response;
-
-        }
-
         public async Task<IEnumerable<PostListDtoV1>?> GetUserPostsAsync(int userId)
         {
             if (await _userService.IsUserExistsAsync(userId) is null)
@@ -110,6 +87,88 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
+        public async Task<PaginatedDTO<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize)
+        {
+            int count = await _dbContext.Posts
+                .Where(p => !p.IsDraft)
+                .CountAsync();
+
+            if (!PageValidation.IsPageValid(count, pageSize, pageNumber))
+            {
+                throw new BusinessLogicException(ExceptionMessages.PageNumberNotExists);
+            }
+
+            var posts = await _dbContext.Posts
+                .Where(p => !p.IsDraft)
+                .Include(p => p.User)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            var response = new PaginatedDTO<PostListDtoV2>(posts, count, pageSize, pageNumber);
+            return response;
+        }
+
+        public async Task<PaginatedDTO<PostListDtoV1>?> GetUserPostsPageAsync(int userId, int pageNumber, int pageSize)
+        {
+            if (await _userService.IsUserExistsAsync(userId) is null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            int count = await _dbContext.Posts
+                .Where(p => p.UserId == userId)
+                .Where(p => !p.IsDraft)
+                .CountAsync();
+
+            if (!PageValidation.IsPageValid(count, pageSize, pageNumber))
+            {
+                throw new BusinessLogicException(ExceptionMessages.PageNumberNotExists);
+            }
+
+            var posts = await _dbContext.Posts
+                .Where(p => p.UserId == userId)
+                .Where(p => !p.IsDraft)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var response = new PaginatedDTO<PostListDtoV1>(posts, count, pageSize, pageNumber);
+            return response;
+        }
+
+        public async Task<PaginatedDTO<PostDraftDTO>?> GetUserDraftsPageAsync(int userId, int pageNumber, int pageSize)
+        {
+            if (await _userService.IsUserExistsAsync(userId) is null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            int count = await _dbContext.Posts
+                .Where(p => p.UserId == userId)
+                .Where(p => p.IsDraft)
+                .CountAsync();
+
+            if (!PageValidation.IsPageValid(count, pageSize, pageNumber))
+            {
+                throw new BusinessLogicException(ExceptionMessages.PageNumberNotExists);
+            }
+
+            var posts = await _dbContext.Posts
+                .Where(p => p.UserId == userId)
+                .Where(p => p.IsDraft)
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var response = new PaginatedDTO<PostDraftDTO>(posts, count, pageSize, pageNumber);
+            return response;
+        }
         public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId)
         {
             var postEntity = await _dbContext.Posts
