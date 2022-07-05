@@ -12,36 +12,16 @@ namespace Habr.WebAPI.Controllers
     [Route("api/v{version:apiVersion}/post")]
     [Route("api/post")]
     [Tags("Post")]
-    public class PostV3Controller : PostV2Controller
+    public class PostV3Controller : HabrController
     {
-        public PostV3Controller(IPostService postService, ILogger<PostV1Controller> logger,
-            IConfiguration configuration) : base(postService, logger)
-        {
-            _configuration = configuration;
-            _pageSize = int.Parse(_configuration["Posts:PageSize"]);
-        }
-
-        private readonly IConfiguration _configuration;
+        private readonly IPostService _postService;
         private readonly int _pageSize;
 
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [NonAction]
-        public override Task<IActionResult> GetAllPostsAsync()
+        public PostV3Controller(IPostService postService,
+            IConfiguration configuration, ILogger<PostV3Controller> logger)
         {
-            throw new NotImplementedException();
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [NonAction]
-        public override Task<IActionResult> GetUserPostsAsync(int userId)
-        {
-            throw new NotImplementedException();
-        }
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [NonAction]
-        public override Task<IActionResult> GetUserDraftsAsync(int userId)
-        {
-            throw new NotImplementedException();
+            _postService = postService;
+            _pageSize = int.Parse(configuration["Posts:PageSize"]);
         }
 
         [HttpGet("posts")]
@@ -60,7 +40,7 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpGet("users/{userId:int}/posts/drafts")]
-        public virtual async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId, [FromQuery] int pageNumber)
+        public async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId, [FromQuery] int pageNumber)
         {
             CheckClaimId(HttpContext.User.Claims, userId);
 
