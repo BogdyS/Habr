@@ -13,6 +13,6 @@ public class PaginatedDTO<T> where T : class
     public List<T> Paginated { get; set; }
     public int TotalCount { get; private set; }
     public int PageSize { get; private set; }
-    public int TotalPages => (int)(TotalCount / (double)PageSize);
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
     public int PageNumber { get; private set; }
 }

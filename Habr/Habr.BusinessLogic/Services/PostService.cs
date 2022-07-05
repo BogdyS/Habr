@@ -101,7 +101,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
                 .Include(p => p.User)
-                .Skip(pageNumber * pageSize)
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
                 .ToListAsync();
@@ -130,7 +130,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
-                .Skip(pageNumber * pageSize)
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
@@ -160,7 +160,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => p.IsDraft)
-                .Skip(pageNumber * pageSize)
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
@@ -196,7 +196,7 @@ namespace Habr.BusinessLogic.Servises
             if (!validationResult.IsValid)
             {
                 var error = validationResult.Errors.First();
-                throw new InvalidDataException(error.ErrorMessage, (string) error.AttemptedValue);
+                throw new InvalidDataException(error.ErrorMessage, (string)error.AttemptedValue);
             }
 
             User? user;
