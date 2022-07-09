@@ -7,6 +7,7 @@ using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
+using Habr.Common;
 using Habr.Common.Resourses;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
@@ -56,16 +57,41 @@ namespace Habr.BusinessLogic.Servises
             return await CreateCommentToCommentAsync(commentDto);
         }
 
-        public async Task DeleteCommentAsync(int commentId, int userId)
+        public async Task UpdateCommentAsync(string commentText, int commentId,int userId, RolesEnum role)
         {
-            Comment? comment = await _dbContext.Comments.SingleOrDefaultAsync(c => c.Id == commentId);
+            var comment = await _dbContext.Comments.SingleOrDefaultAsync(c => c.Id == commentId);
 
             if (comment == null)
             {
                 throw new NotFoundException(ExceptionMessages.CommentNotFound);
             }
 
-            if (comment.UserId != userId)
+            if (comment.UserId != userId && role != RolesEnum.Admin)
+            {
+                throw new BusinessLogicException(ExceptionMessages.AcessToCommentDenied);
+            }
+
+            var validationResult = await _commentValidator.ValidateAsync(new CreateCommentDTO() {Text = commentText});
+            if (!validationResult.IsValid)
+            {
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, (string) error.AttemptedValue);
+            }
+
+            comment.Text = commentText;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteCommentAsync(int commentId, int userId, RolesEnum role)
+        {
+            var comment = await _dbContext.Comments.SingleOrDefaultAsync(c => c.Id == commentId);
+
+            if (comment == null)
+            {
+                throw new NotFoundException(ExceptionMessages.CommentNotFound);
+            }
+
+            if (comment.UserId != userId && role != RolesEnum.Admin)
             {
                 throw new BusinessLogicException(ExceptionMessages.AcessToCommentDenied);
             }

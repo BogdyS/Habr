@@ -2,11 +2,14 @@
 using AutoMapper.QueryableExtensions;
 using FluentValidation;
 using Habr.BusinessLogic.Interfaces;
+using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
 using Habr.Common.Resourses;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using InvalidDataException = Habr.Common.Exceptions.InvalidDataException;
 
@@ -17,29 +20,99 @@ namespace Habr.BusinessLogic.Servises
         private readonly DataContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IValidator<RegistrationDTO> _userValidator;
-        public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator)
+        private readonly IPasswordHasher<IUserDTO> _hasher;
+        private readonly IJwtService _jwtService;
+        public UserService(DataContext dataContext, IMapper mapper, IValidator<RegistrationDTO> userValidator, IPasswordHasher<IUserDTO> hasher, IJwtService jwtService)
         {
             _dbContext = dataContext;
             _mapper = mapper;
             _userValidator = userValidator;
+            _hasher = hasher;
+            _jwtService = jwtService;
         }
 
-        public async Task<UserDTO> LoginAsync(LoginDTO loginData)
+        public async Task<LoginResponse> LoginAsync(LoginDTO loginData)
         {
             var user = await _dbContext.Users
                 .SingleOrDefaultAsync(u => u.Email.Equals(loginData.Login));
-
+            
             if (user == null)
             {
                 throw new BusinessLogicException(ExceptionMessages.UserWithEmailNotFound);
             }
 
-            if (user.Password != loginData.Password)
+            if (_hasher.VerifyHashedPassword(loginData, user.Password, loginData.Password) == PasswordVerificationResult.Failed)
             {
                 throw new BusinessLogicException(ExceptionMessages.LoginError);
             }
 
-            return _mapper.Map<UserDTO>(user);
+            var userResponse = _mapper.Map<UserDTO>(user);
+
+            var tokenResponse = new TokenResponse()
+            {
+                AccessToken = _jwtService.GetJwt(userResponse),
+                RefreshToken = _jwtService.GetRefreshToken()
+            };
+
+            user.RefreshToken = tokenResponse.RefreshToken;
+            user.RefreshTokenActiveTo = _jwtService.RefreshTokenValidTo;
+
+            await _dbContext.SaveChangesAsync();
+            var response = new LoginResponse()
+            {
+                User = userResponse,
+                Tokens = tokenResponse
+            };
+
+            return response;
+        }
+
+        public async Task<TokenResponse> RefreshTokensAsync(RefreshDTO refreshDto)
+        {
+            var user = await _dbContext.Users
+                .SingleOrDefaultAsync(u => u.Id == int.Parse(refreshDto.UserId!));
+
+            if (user == null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            if (user.RefreshToken == null || !user.RefreshToken.Equals(refreshDto.RefreshToken) ||
+                DateTime.UtcNow > user.RefreshTokenActiveTo)
+            {
+                throw new ForbiddenException(ExceptionMessages.RefreshTokenInvalid);
+            }
+
+            var userDto = _mapper.Map<UserDTO>(user);
+
+            var accessToken = _jwtService.GetJwt(userDto);
+            var refreshToken = _jwtService.GetRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenActiveTo = _jwtService.RefreshTokenValidTo;
+            await _dbContext.SaveChangesAsync();
+
+            return new TokenResponse()
+            {
+                RefreshToken = refreshToken,
+                AccessToken = accessToken
+            };
+        }
+
+        public async Task ExitAsync(int userId)
+        {
+            var user = await _dbContext.Users
+                .SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            user.RefreshToken = null;
+            user.RefreshTokenActiveTo = null;
+
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<UserDTO> GetUserAsync(int userId)
@@ -70,6 +143,7 @@ namespace Habr.BusinessLogic.Servises
                 throw new BusinessLogicException(ExceptionMessages.EmailTaken);
             }
 
+            newUser.Password = _hasher.HashPassword(newUser, newUser.Password);
             var user = _mapper.Map<User>(newUser);
 
             _dbContext.Users.Add(user);

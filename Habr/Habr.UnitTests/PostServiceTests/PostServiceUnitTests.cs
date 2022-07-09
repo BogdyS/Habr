@@ -5,13 +5,17 @@ using System.Threading;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
+using Habr.BusinessLogic.Interfaces;
 using Habr.BusinessLogic.Mapping;
 using Habr.BusinessLogic.Servises;
+using Habr.Common;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.Common.Exceptions;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
+using Habr.WebAPI;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
@@ -24,6 +28,9 @@ public class PostServiceUnitTests : IDisposable
     private readonly IMapper _mapper;
     private readonly IValidator<IPostDTO> _postValidator;
     private readonly IValidator<RegistrationDTO> _userValidator;
+    private readonly IPasswordHasher<IUserDTO> _hasher;
+    private readonly IJwtService _jwtService;
+
     public PostServiceUnitTests()
     {
         _mapper = new Mapper(new MapperConfiguration(
@@ -51,6 +58,23 @@ public class PostServiceUnitTests : IDisposable
 
         _mapper.Map<List<User>>(TestingUsers()).ForEach(user => _dbContext.Users.Add(user));
         _dbContext.SaveChanges();
+
+        var hasherMock = new Mock<IPasswordHasher<IUserDTO>>();
+        hasherMock.Setup(h=>h.HashPassword(It.IsAny<IUserDTO>(), It.IsAny<string>()))
+            .Returns<IUserDTO,string>((u, s) => s.GetHashCode().ToString());
+        hasherMock.Setup(h => h.VerifyHashedPassword(It.IsAny<IUserDTO>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns<IUserDTO, string, string>(((u, hashed, notHashed) =>
+            {
+                if (hashed == notHashed.GetHashCode().ToString()) return PasswordVerificationResult.Success;
+                return PasswordVerificationResult.Failed;
+            }));
+
+        _hasher = hasherMock.Object;
+
+        var jwtMock = new Mock<IJwtService>();
+        jwtMock.Setup(service => service.GetJwt(It.IsAny<object>())).Returns("12345");
+        jwtMock.Setup(service => service.GetRefreshToken()).Returns("12345");
+        _jwtService = jwtMock.Object;
     }
 
     [Fact]
@@ -59,7 +83,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -84,7 +108,7 @@ public class PostServiceUnitTests : IDisposable
             id++;
         }
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
         
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -101,7 +125,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -121,7 +145,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -138,7 +162,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -155,7 +179,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -175,7 +199,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var users = await _dbContext.Users.Take(2).ToListAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -192,7 +216,7 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -209,14 +233,14 @@ public class PostServiceUnitTests : IDisposable
         //Arrange
         var user = await _dbContext.Users.FirstAsync();
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
         var post = await _dbContext.Posts.FirstAsync();
 
         //Act
-        await postService.DeletePostAsync(post.Id, user.Id);
+        await postService.DeletePostAsync(post.Id, user.Id, RolesEnum.User);
 
         //Assert
         await Assert.ThrowsAsync<NotFoundException>(async () => await postService.GetPostWithCommentsAsync(post.Id));
@@ -227,7 +251,7 @@ public class PostServiceUnitTests : IDisposable
     {
         //Arrange
 
-        var userService = new UserService(_dbContext, _mapper, _userValidator);
+        var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
         var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
 
@@ -235,7 +259,7 @@ public class PostServiceUnitTests : IDisposable
         var user = await _dbContext.Users.FirstAsync(u => u.Id != post.UserId);
         //Assert
         await Assert.ThrowsAsync<BusinessLogicException>(
-            async () => await postService.DeletePostAsync(post.Id, user.Id));
+            async () => await postService.DeletePostAsync(post.Id, user.Id, RolesEnum.User));
     }
 
     public static IEnumerable<CreatingPostDTO> TestingPosts()

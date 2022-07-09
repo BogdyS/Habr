@@ -214,6 +214,15 @@ namespace Habr.Common.Resourses {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Refresh token is invalid.
+        /// </summary>
+        public static string RefreshTokenInvalid {
+            get {
+                return ResourceManager.GetString("RefreshTokenInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на User can&apos;t remove post with comments to drafts.
         /// </summary>
         public static string RemovingPostWithComments {
