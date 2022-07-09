@@ -27,19 +27,31 @@ namespace Habr.BusinessLogic.Servises
             _postValidator = postValidator;
         }
 
-        public async Task<IEnumerable<PostListDTO>?> GetAllPostsAsync()
+        public async Task<IEnumerable<PostListDtoV1>?> GetAllPostsV1Async()
         {
             var posts = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
                 .Include(p => p.User)
-                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
+                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 
             return posts;
         }
 
-        public async Task<IEnumerable<PostListDTO>?> GetUserPostsAsync(int userId)
+        public async Task<IEnumerable<PostListDtoV2>> GetAllPostsV2Async()
+        {
+            var posts = await _dbContext.Posts
+                .Where(p => !p.IsDraft)
+                .Include(p => p.User)
+                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return posts;
+        }
+
+        public async Task<IEnumerable<PostListDtoV1>?> GetUserPostsAsync(int userId)
         {
             if (await _userService.IsUserExistsAsync(userId) is null)
             {
@@ -49,7 +61,7 @@ namespace Habr.BusinessLogic.Servises
             var posts = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
-                .ProjectTo<PostListDTO>(_mapper.ConfigurationProvider)
+                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
                 .AsNoTracking()
                 .ToListAsync();
 

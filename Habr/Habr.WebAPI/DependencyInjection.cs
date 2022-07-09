@@ -9,6 +9,8 @@ using Habr.Common.DTO.User;
 using Habr.DataAccess;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -74,6 +76,18 @@ public static class DependencyInjection
                     ClockSkew = new TimeSpan(0,0,0,15)
                 };
             });
+        return services;
+    }
+
+    public static IServiceCollection AddVersions(this IServiceCollection services)
+    {
+        services.AddApiVersioning(options =>
+        {
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        });
         return services;
     }
 }

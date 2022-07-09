@@ -9,7 +9,7 @@ public class PostProfile : Profile
 {
     public PostProfile()
     {
-        CreateMap<Post, PostListDTO>()
+        CreateMap<Post, PostListDtoV1>()
             .ForMember(dto => dto.Id,
                 options => options.MapFrom(post => post.Id))
             .ForMember(dto => dto.Posted,
@@ -18,6 +18,20 @@ public class PostProfile : Profile
                 options => options.MapFrom(post => post.Title))
             .ForMember(dto => dto.UserEmail,
                 options => options.MapFrom(post => post.User.Email));
+
+        CreateMap<Post, PostListDtoV2>()
+            .ForMember(dto => dto.Id,
+                options => options.MapFrom(post => post.Id))
+            .ForMember(dto => dto.Posted,
+                options => options.MapFrom(post => post.Posted))
+            .ForMember(dto => dto.Title,
+                options => options.MapFrom(post => post.Title))
+            .ForMember(dto => dto.Author,
+                options => options.MapFrom(post => new AuthorDto()
+                {
+                    Email = post.User.Email,
+                    Name = post.User.Name
+                }));
 
         CreateMap<Post, FullPostDTO>()
             .ForMember(dto => dto.Id,
