@@ -93,14 +93,14 @@ namespace Habr.BusinessLogic.Servises
             var context = new PaginationContext()
             {
                 PageIndex = --pageNumber,
-                PageSize = pageSize,
-                Provider = _mapper.ConfigurationProvider
+                PageSize = pageSize
             };
 
             var response = await _dbContext.Posts
                 .Where(p => !p.IsDraft)
                 .Include(p => p.User)
-                .GetPagedDataAsync<Post, PostListDtoV2>(context);
+                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
+                .GetPagedDataAsync(context);
 
             return response;
         }
@@ -114,14 +114,14 @@ namespace Habr.BusinessLogic.Servises
             var context = new PaginationContext()
             {
                 PageIndex = --pageNumber,
-                PageSize = pageSize,
-                Provider = _mapper.ConfigurationProvider
+                PageSize = pageSize
             };
 
             var response = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => !p.IsDraft)
-                .GetPagedDataAsync<Post, PostListDtoV1>(context);
+                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
+                .GetPagedDataAsync(context);
 
             return response;
         }
@@ -136,14 +136,14 @@ namespace Habr.BusinessLogic.Servises
             var context = new PaginationContext()
             {
                 PageIndex = --pageNumber,
-                PageSize = pageSize,
-                Provider = _mapper.ConfigurationProvider
+                PageSize = pageSize
             };
 
             var response = await _dbContext.Posts
                 .Where(p => p.UserId == userId)
                 .Where(p => p.IsDraft)
-                .GetPagedDataAsync<Post, PostDraftDTO>(context);
+                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
+                .GetPagedDataAsync(context);
 
             return response;
         }
