@@ -8,6 +8,7 @@ namespace Habr.DataAccess.Entities
         {
             Posts = new List<Post>();
             Comments = new List<Comment>();
+            Rates = new List<Rate>();
         }
         public int Id { get; set; }
         public string Email { get; set; }
@@ -18,5 +19,6 @@ namespace Habr.DataAccess.Entities
         public RolesEnum Role { get; set; }
         public ICollection<Post> Posts { get; set; }
         public ICollection<Comment> Comments { get; set; }
+        public ICollection<Rate> Rates { get; set; }
     }
 }
