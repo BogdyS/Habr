@@ -30,6 +30,7 @@ public class PostServiceUnitTests : IDisposable
     private readonly IValidator<RegistrationDTO> _userValidator;
     private readonly IPasswordHasher<IUserDTO> _hasher;
     private readonly IJwtService _jwtService;
+    private readonly IValidator<Rate> _rateValidator;
 
     public PostServiceUnitTests()
     {
@@ -75,6 +76,13 @@ public class PostServiceUnitTests : IDisposable
         jwtMock.Setup(service => service.GetJwt(It.IsAny<object>())).Returns("12345");
         jwtMock.Setup(service => service.GetRefreshToken()).Returns("12345");
         _jwtService = jwtMock.Object;
+
+        var rateValidatorMock = new Mock<IValidator<Rate>>();
+        rateValidatorMock.Setup(v => v.ValidateAsync(It.IsAny<Rate>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        rateValidatorMock.Setup(v => v.Validate(It.IsAny<Rate>()))
+            .Returns(new ValidationResult());
+        _rateValidator = rateValidatorMock.Object;
     }
 
     [Fact]
@@ -85,7 +93,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
 
@@ -110,7 +118,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
         
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = id, IsDraft = false };
 
@@ -127,7 +135,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -147,7 +155,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = users[0].Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -164,7 +172,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -181,7 +189,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -201,7 +209,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = users[0].Id, IsDraft = false };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -218,7 +226,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var newPostDto = new CreatingPostDTO() { Text = "New Text", Title = "New Title", UserId = user.Id, IsDraft = true };
         var post = await postService.CreatePostAsync(newPostDto);
@@ -235,7 +243,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var post = await _dbContext.Posts.FirstAsync();
 
@@ -253,7 +261,7 @@ public class PostServiceUnitTests : IDisposable
 
         var userService = new UserService(_dbContext, _mapper, _userValidator, _hasher, _jwtService);
 
-        var postService = new PostService(_dbContext, _mapper, userService, _postValidator);
+        var postService = new PostService(_dbContext, _mapper, userService, _postValidator, _rateValidator);
 
         var post = await _dbContext.Posts.FirstAsync();
         var user = await _dbContext.Users.FirstAsync(u => u.Id != post.UserId);

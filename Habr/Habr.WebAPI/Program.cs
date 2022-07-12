@@ -1,4 +1,5 @@
 using Habr.WebAPI;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using NLog.Web;
@@ -29,6 +30,8 @@ builder.Services.AddVersionedApiExplorer(setup =>
 });
 builder.Services.ConfigureOptions<SwaggerOptions>();
 builder.Services.AddSwaggerGen();
+builder.Services.AddBackgroundTasks(builder.Configuration);
+
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -54,5 +57,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseHangfireDashboard();
 
 await app.RunAsync();

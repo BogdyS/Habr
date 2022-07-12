@@ -8,6 +8,8 @@ using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.DataAccess;
 using Habr.DataAccess.Entities;
+using Habr.WebAPI.BackgroundJobs;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPagedPostService, PagedPostService>();
+        services.AddScoped<IPostRatingCalculator, PostRatingCalculator>();
         services.AddSingleton<IPasswordHasher<IUserDTO>, PasswordHasher<IUserDTO>>();
         return services;
     }
@@ -91,6 +94,13 @@ public static class DependencyInjection
             options.ReportApiVersions = true;
             options.ApiVersionReader = new UrlSegmentApiVersionReader();
         });
+        return services;
+    }
+
+    public static IServiceCollection AddBackgroundTasks(this IServiceCollection services, ConfigurationManager configuration)
+    {
+        services.AddHangfire(options => options.UseSqlServerStorage(configuration.GetConnectionString("HangfireDatabase")));
+        services.AddHangfireServer();
         return services;
     }
 }

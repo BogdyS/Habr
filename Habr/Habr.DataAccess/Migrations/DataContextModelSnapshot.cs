@@ -55,7 +55,7 @@ namespace Habr.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Habr.DataAccess.Entities.Post", b =>
@@ -101,7 +101,7 @@ namespace Habr.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("Habr.DataAccess.Entities.Rate", b =>
@@ -127,7 +127,7 @@ namespace Habr.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Rates");
+                    b.ToTable("Rates", (string)null);
 
                     b.HasCheckConstraint("CK_Rates_Value", "[Value] > 0 AND [Value] <= 5");
                 });
@@ -170,7 +170,7 @@ namespace Habr.DataAccess.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Habr.DataAccess.Entities.Comment", b =>
