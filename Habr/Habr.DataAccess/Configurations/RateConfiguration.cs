@@ -22,11 +22,11 @@ public class RateConfiguration :IEntityTypeConfiguration<Rate>
         builder.HasOne(r => r.User)
             .WithMany(u => u.Rates)
             .HasForeignKey(r => r.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(r => r.Post)
             .WithMany(p => p.Rates)
             .HasForeignKey(r => r.PostId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

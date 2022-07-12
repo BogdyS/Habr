@@ -31,6 +31,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
 
         builder.HasMany(u => u.Rates)
             .WithOne(r => r.User)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

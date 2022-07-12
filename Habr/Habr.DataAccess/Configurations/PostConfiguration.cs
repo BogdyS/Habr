@@ -38,7 +38,7 @@ namespace Habr.DataAccess.Configurations
 
             builder.HasMany(x => x.Rates)
                 .WithOne(r => r.Post)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
