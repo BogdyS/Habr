@@ -10,9 +10,6 @@ public interface IPostService
     Task<IEnumerable<PostListDtoV2>> GetAllPostsV2Async();
     Task<IEnumerable<PostListDtoV1>?> GetUserPostsAsync(int userId);
     Task<IEnumerable<PostDraftDTO>?> GetUserDraftsAsync(int userId);
-    Task<PaginatedData<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize);
-    Task<PaginatedData<PostListDtoV1>?> GetUserPostsPageAsync(int userId, int pageNumber, int pageSize);
-    Task<PaginatedData<PostDraftDTO>?> GetUserDraftsPageAsync(int userId, int pageNumber, int pageSize);
     Task<FullPostDTO> GetPostWithCommentsAsync(int postId);
     Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post);
     Task PostFromDraftAsync(int draftId, int userId);

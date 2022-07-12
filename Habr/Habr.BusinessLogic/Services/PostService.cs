@@ -88,65 +88,6 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
-        public async Task<PaginatedData<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize)
-        {
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => !p.IsDraft)
-                .Include(p => p.User)
-                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
-
-        public async Task<PaginatedData<PostListDtoV1>?> GetUserPostsPageAsync(int userId, int pageNumber, int pageSize)
-        {
-            if (await _userService.IsUserExistsAsync(userId) is null)
-            {
-                throw new NotFoundException(ExceptionMessages.UserNotFound);
-            }
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => p.UserId == userId)
-                .Where(p => !p.IsDraft)
-                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
-
-        public async Task<PaginatedData<PostDraftDTO>?> GetUserDraftsPageAsync(int userId, int pageNumber, int pageSize)
-        {
-            if (await _userService.IsUserExistsAsync(userId) is null)
-            {
-                throw new NotFoundException(ExceptionMessages.UserNotFound);
-            }
-
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => p.UserId == userId)
-                .Where(p => p.IsDraft)
-                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
         public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId)
         {
             var postEntity = await _dbContext.Posts

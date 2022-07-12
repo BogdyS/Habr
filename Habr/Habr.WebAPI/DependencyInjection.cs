@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IPagedPostService, PagedPostService>();
         services.AddSingleton<IPasswordHasher<IUserDTO>, PasswordHasher<IUserDTO>>();
         return services;
     }
