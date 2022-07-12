@@ -14,6 +14,7 @@ public interface IPostService
     Task<FullPostDTO> CreatePostAsync(CreatingPostDTO post);
     Task PostFromDraftAsync(int draftId, int userId);
     Task RemovePostToDraftsAsync(int postId, int userId);
+    Task RatePostAsync(int postId, int userId, int rateValue);
     Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId, RolesEnum role);
     Task DeletePostAsync(int postId, int userId, RolesEnum role);
 }

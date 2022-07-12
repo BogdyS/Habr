@@ -198,6 +198,39 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task RatePostAsync(int postId, int userId, int rateValue)
+        {
+            if (await _userService.IsUserExistsAsync(userId) == null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            if (await IsPostExistsAsync(postId) == null)
+            {
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
+            }
+
+            Rate? rate = await _dbContext.Rates
+                .Where(rate => rate.PostId == postId)
+                .Where(rate => rate.UserId == userId)
+                .SingleOrDefaultAsync();
+
+            if (rate == null)
+            {
+                rate = new Rate()
+                {
+                    PostId = postId,
+                    UserId = userId,
+                    Value = rateValue
+                };
+                _dbContext.Rates.Add(rate);
+            }
+
+            rate.Value = rateValue;
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId, RolesEnum role)
         {
             var validationResult = await _postValidator.ValidateAsync(post);
@@ -248,6 +281,11 @@ namespace Habr.BusinessLogic.Servises
 
             _dbContext.Posts.Remove(post);
             await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task<Post?> IsPostExistsAsync(int postId)
+        {
+            return await _dbContext.Posts.SingleOrDefaultAsync(post => post.Id == postId);
         }
     }
 }
