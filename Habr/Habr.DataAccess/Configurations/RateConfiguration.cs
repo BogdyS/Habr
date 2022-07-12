@@ -19,6 +19,8 @@ public class RateConfiguration :IEntityTypeConfiguration<Rate>
         builder.Property(r => r.Value)
             .IsRequired();
 
+        builder.HasCheckConstraint("CK_Rates_Value", "[Value] > 0 AND [Value] <= 5");
+
         builder.HasOne(r => r.User)
             .WithMany(u => u.Rates)
             .HasForeignKey(r => r.UserId)

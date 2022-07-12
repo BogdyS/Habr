@@ -7,6 +7,7 @@ using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.DataAccess;
+using Habr.DataAccess.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<IPostDTO>, PostValidator>();
         services.AddScoped<IValidator<RegistrationDTO>, UserValidator>();
         services.AddScoped<IValidator<CreateCommentDTO>, CommentValidator>();
+        services.AddScoped<IValidator<Rate>, RateValidator>();
         return services;
     }
 
@@ -74,7 +76,7 @@ public static class DependencyInjection
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
-                    ClockSkew = new TimeSpan(0,0,0,15)
+                    ClockSkew = new TimeSpan(0, 0, 0, 15)
                 };
             });
         return services;

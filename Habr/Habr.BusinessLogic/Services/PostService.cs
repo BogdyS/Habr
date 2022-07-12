@@ -22,12 +22,16 @@ namespace Habr.BusinessLogic.Servises
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IValidator<IPostDTO> _postValidator;
-        public PostService(DataContext dbContext, IMapper mapper, IUserService userService, IValidator<IPostDTO> postValidator)
+        private readonly IValidator<Rate> _rateValidator;
+
+        public PostService(DataContext dbContext, IMapper mapper, IUserService userService,
+            IValidator<IPostDTO> postValidator, IValidator<Rate> rateValidator)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _userService = userService;
             _postValidator = postValidator;
+            _rateValidator = rateValidator;
         }
 
         public async Task<IEnumerable<PostListDtoV1>?> GetAllPostsV1Async()
@@ -227,6 +231,13 @@ namespace Habr.BusinessLogic.Servises
             }
 
             rate.Value = rateValue;
+
+            var validationResult = _rateValidator.Validate(rate);
+            if (!validationResult.IsValid)
+            {
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, error.AttemptedValue.ToString());
+            }
 
             await _dbContext.SaveChangesAsync();
         }
