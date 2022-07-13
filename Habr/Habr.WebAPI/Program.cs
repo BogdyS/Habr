@@ -1,4 +1,5 @@
 using Habr.WebAPI;
+using Habr.WebAPI.BackgroundJobs;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -51,7 +52,7 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
-
+app.CreatePostRatingDailyJob();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
