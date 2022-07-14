@@ -12,7 +12,8 @@ namespace Habr.DataAccess
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Comment> Comments { get; set; }
-        
+        public DbSet<Rate> Rates { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(PostConfiguration).Assembly);

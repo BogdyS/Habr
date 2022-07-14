@@ -223,6 +223,24 @@ namespace Habr.Common.Resourses {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Maximum rating is {0} points.
+        /// </summary>
+        public static string RateTooBig {
+            get {
+                return ResourceManager.GetString("RateTooBig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Minimum rating is {0} points.
+        /// </summary>
+        public static string RateTooSmall {
+            get {
+                return ResourceManager.GetString("RateTooSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Refresh token is invalid.
         /// </summary>
         public static string RefreshTokenInvalid {

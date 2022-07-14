@@ -56,6 +56,15 @@ namespace Habr.WebAPI.Controllers
             return Ok(post);
         }
 
+        [HttpPatch("posts/{postId:int}/rate")]
+        public async Task<IActionResult> RatePostAsync([FromRoute] int postId, [FromQuery] int rate)
+        {
+            int userId = GetUserId(HttpContext.User.Claims);
+
+            await _postService.RatePostAsync(postId, userId, rate);
+            return Ok();
+        }
+
         [MapToApiVersion("1")]
         [MapToApiVersion("2")]
         [HttpGet("users/{userId:int}/posts")]

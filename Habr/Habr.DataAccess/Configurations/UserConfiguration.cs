@@ -28,5 +28,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
         builder.Property(x => x.Role)
             .IsRequired()
             .HasDefaultValue(RolesEnum.User);
+
+        builder.HasMany(u => u.Rates)
+            .WithOne(r => r.User)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

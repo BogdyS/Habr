@@ -13,6 +13,11 @@ namespace Habr.WebAPI.Controllers
             return JwtHelper.GetClaimRole(claims);
         }
 
+        protected int GetUserId(IEnumerable<Claim> claims)
+        {
+            return JwtHelper.GetClaimUserId(claims);
+        }
+
         protected void CheckClaimId(IEnumerable<Claim> claims, int userId)
         {
             JwtHelper.IsJwtIdClaimValid(claims, userId);

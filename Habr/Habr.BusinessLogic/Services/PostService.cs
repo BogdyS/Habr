@@ -22,12 +22,16 @@ namespace Habr.BusinessLogic.Servises
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IValidator<IPostDTO> _postValidator;
-        public PostService(DataContext dbContext, IMapper mapper, IUserService userService, IValidator<IPostDTO> postValidator)
+        private readonly IValidator<Rate> _rateValidator;
+
+        public PostService(DataContext dbContext, IMapper mapper, IUserService userService,
+            IValidator<IPostDTO> postValidator, IValidator<Rate> rateValidator)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _userService = userService;
             _postValidator = postValidator;
+            _rateValidator = rateValidator;
         }
 
         public async Task<IEnumerable<PostListDtoV1>?> GetAllPostsV1Async()
@@ -88,65 +92,6 @@ namespace Habr.BusinessLogic.Servises
             return posts;
         }
 
-        public async Task<PaginatedData<PostListDtoV2>> GetAllPostsPageAsync(int pageNumber, int pageSize)
-        {
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => !p.IsDraft)
-                .Include(p => p.User)
-                .ProjectTo<PostListDtoV2>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
-
-        public async Task<PaginatedData<PostListDtoV1>?> GetUserPostsPageAsync(int userId, int pageNumber, int pageSize)
-        {
-            if (await _userService.IsUserExistsAsync(userId) is null)
-            {
-                throw new NotFoundException(ExceptionMessages.UserNotFound);
-            }
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => p.UserId == userId)
-                .Where(p => !p.IsDraft)
-                .ProjectTo<PostListDtoV1>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
-
-        public async Task<PaginatedData<PostDraftDTO>?> GetUserDraftsPageAsync(int userId, int pageNumber, int pageSize)
-        {
-            if (await _userService.IsUserExistsAsync(userId) is null)
-            {
-                throw new NotFoundException(ExceptionMessages.UserNotFound);
-            }
-
-            var context = new PaginationContext()
-            {
-                PageIndex = --pageNumber,
-                PageSize = pageSize
-            };
-
-            var response = await _dbContext.Posts
-                .Where(p => p.UserId == userId)
-                .Where(p => p.IsDraft)
-                .ProjectTo<PostDraftDTO>(_mapper.ConfigurationProvider)
-                .GetPagedDataAsync(context);
-
-            return response;
-        }
         public async Task<FullPostDTO> GetPostWithCommentsAsync(int postId)
         {
             var postEntity = await _dbContext.Posts
@@ -257,6 +202,46 @@ namespace Habr.BusinessLogic.Servises
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task RatePostAsync(int postId, int userId, int rateValue)
+        {
+            if (await _userService.IsUserExistsAsync(userId) == null)
+            {
+                throw new NotFoundException(ExceptionMessages.UserNotFound);
+            }
+
+            if (await IsPostExistsAsync(postId) == null)
+            {
+                throw new NotFoundException(ExceptionMessages.PostNotFound);
+            }
+
+            Rate? rate = await _dbContext.Rates
+                .Where(rate => rate.PostId == postId)
+                .Where(rate => rate.UserId == userId)
+                .SingleOrDefaultAsync();
+
+            if (rate == null)
+            {
+                rate = new Rate()
+                {
+                    PostId = postId,
+                    UserId = userId,
+                    Value = rateValue
+                };
+                _dbContext.Rates.Add(rate);
+            }
+
+            rate.Value = rateValue;
+
+            var validationResult = _rateValidator.Validate(rate);
+            if (!validationResult.IsValid)
+            {
+                var error = validationResult.Errors.First();
+                throw new InvalidDataException(error.ErrorMessage, error.AttemptedValue.ToString());
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task UpdatePostAsync(UpdatePostDTO post, int userId, int postId, RolesEnum role)
         {
             var validationResult = await _postValidator.ValidateAsync(post);
@@ -307,6 +292,11 @@ namespace Habr.BusinessLogic.Servises
 
             _dbContext.Posts.Remove(post);
             await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task<Post?> IsPostExistsAsync(int postId)
+        {
+            return await _dbContext.Posts.SingleOrDefaultAsync(post => post.Id == postId);
         }
     }
 }

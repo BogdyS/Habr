@@ -14,10 +14,10 @@ namespace Habr.WebAPI.Controllers
     [Tags("Post")]
     public class PostV3Controller : HabrController
     {
-        private readonly IPostService _postService;
+        private readonly IPagedPostService _postService;
         private readonly int _pageSize;
 
-        public PostV3Controller(IPostService postService,
+        public PostV3Controller(IPagedPostService postService,
             IConfiguration configuration, ILogger<PostV3Controller> logger)
         {
             _postService = postService;

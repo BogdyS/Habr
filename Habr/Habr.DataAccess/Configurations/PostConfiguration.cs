@@ -25,6 +25,10 @@ namespace Habr.DataAccess.Configurations
                 .IsRequired();
             builder.Property(x => x.IsDraft)
                 .IsRequired();
+            builder.Property(x => x.AverageRating)
+                .HasPrecision(3, 2)
+                .HasDefaultValue(0)
+                .IsRequired();
 
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Posts)
@@ -32,6 +36,9 @@ namespace Habr.DataAccess.Configurations
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
+            builder.HasMany(x => x.Rates)
+                .WithOne(r => r.Post)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

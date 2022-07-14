@@ -7,6 +7,9 @@ using Habr.BusinessLogic.Validation;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
 using Habr.DataAccess;
+using Habr.DataAccess.Entities;
+using Habr.WebAPI.BackgroundJobs;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IPagedPostService, PagedPostService>();
+        services.AddTransient<IPostRatingCalculator, PostRatingCalculator>();
         services.AddSingleton<IPasswordHasher<IUserDTO>, PasswordHasher<IUserDTO>>();
         return services;
     }
@@ -47,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<IPostDTO>, PostValidator>();
         services.AddScoped<IValidator<RegistrationDTO>, UserValidator>();
         services.AddScoped<IValidator<CreateCommentDTO>, CommentValidator>();
+        services.AddScoped<IValidator<Rate>, RateValidator>();
         return services;
     }
 
@@ -73,7 +79,7 @@ public static class DependencyInjection
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
-                    ClockSkew = new TimeSpan(0,0,0,15)
+                    ClockSkew = new TimeSpan(0, 0, 0, 15)
                 };
             });
         return services;
@@ -88,6 +94,13 @@ public static class DependencyInjection
             options.ReportApiVersions = true;
             options.ApiVersionReader = new UrlSegmentApiVersionReader();
         });
+        return services;
+    }
+
+    public static IServiceCollection AddBackgroundTasks(this IServiceCollection services, ConfigurationManager configuration)
+    {
+        services.AddHangfire(options => options.UseSqlServerStorage(configuration.GetConnectionString("HangfireDatabase")));
+        services.AddHangfireServer();
         return services;
     }
 }
