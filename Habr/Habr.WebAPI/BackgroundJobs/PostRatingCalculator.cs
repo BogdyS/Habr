@@ -15,7 +15,10 @@ public class PostRatingCalculator : IPostRatingCalculator
 
     public async Task CalculateAverageRating()
     {
-        await _dataContext.Posts.Include(p=>p.Rates).ForEachAsync(CalculatePost);
+        await _dataContext.Posts
+            .Include(p=>p.Rates)
+            .ForEachAsync(CalculatePost);
+
         await _dataContext.SaveChangesAsync();
     }
 

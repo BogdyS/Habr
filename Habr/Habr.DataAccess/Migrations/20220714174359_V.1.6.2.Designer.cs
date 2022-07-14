@@ -12,14 +12,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Habr.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220712172957_V.1.6.2")]
+    [Migration("20220714174359_V.1.6.2")]
     partial class V162
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.6")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -130,6 +130,8 @@ namespace Habr.DataAccess.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Rates");
+
+                    b.HasCheckConstraint("CK_Rates_Value", "[Value] > 0 AND [Value] <= 5");
                 });
 
             modelBuilder.Entity("Habr.DataAccess.Entities.User", b =>

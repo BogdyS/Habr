@@ -4,7 +4,7 @@
 
 namespace Habr.DataAccess.Migrations
 {
-    public partial class V163 : Migration
+    public partial class V162 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
