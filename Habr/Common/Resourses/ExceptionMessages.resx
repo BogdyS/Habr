@@ -152,6 +152,9 @@
   <data name="NameRequired" xml:space="preserve">
     <value>Name is required</value>
   </data>
+  <data name="PageNumberNotExists" xml:space="preserve">
+    <value>Page number invalid</value>
+  </data>
   <data name="PasswordNotSecure" xml:space="preserve">
     <value>Password is not secure</value>
   </data>

@@ -9,6 +9,8 @@ namespace Habr.WebAPI.Controllers
     [Authorize]
     [ApiController]
     [ApiVersion("1", Deprecated = true)]
+    [ApiVersion("2")]
+    [ApiVersion("3")]
     [Route("api/v{version:apiVersion}/post")]
     [Route("api/post")]
     [Tags("Post")]
@@ -23,6 +25,7 @@ namespace Habr.WebAPI.Controllers
             _logger = logger;
         }
 
+        [MapToApiVersion("1")]
         [AllowAnonymous]
         [HttpGet("posts")]
         public virtual async Task<IActionResult> GetAllPostsAsync()
@@ -53,16 +56,20 @@ namespace Habr.WebAPI.Controllers
             return Ok(post);
         }
 
+        [MapToApiVersion("1")]
+        [MapToApiVersion("2")]
         [HttpGet("users/{userId:int}/posts")]
-        public async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
+        public virtual async Task<IActionResult> GetUserPostsAsync([FromRoute] int userId)
         {
             CheckClaimId(HttpContext.User.Claims, userId);
 
             return Ok(await _postService.GetUserPostsAsync(userId));
         }
 
+        [MapToApiVersion("1")]
+        [MapToApiVersion("2")]
         [HttpGet("users/{userId:int}/posts/drafts")]
-        public async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
+        public virtual async Task<IActionResult> GetUserDraftsAsync([FromRoute] int userId)
         {
             CheckClaimId(HttpContext.User.Claims, userId);
 

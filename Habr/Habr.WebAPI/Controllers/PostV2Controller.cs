@@ -11,13 +11,18 @@ namespace Habr.WebAPI.Controllers
     [Route("api/v{version:apiVersion}/post")]
     [Route("api/post")]
     [Tags("Post")]
-    public class PostV2Controller : PostV1Controller
+    public class PostV2Controller : HabrController
     {
-        public PostV2Controller(IPostService postService, ILogger<PostV1Controller> logger) : base(postService, logger) { }
+        private readonly IPostService _postService;
+
+        public PostV2Controller(IPostService postService)
+        {
+            _postService = postService;
+        }
 
         [AllowAnonymous]
         [HttpGet("posts")]
-        public override async Task<IActionResult> GetAllPostsAsync()
+        public async Task<IActionResult> GetAllPostsAsync()
         {
             return Ok(await _postService.GetAllPostsV2Async());
         }
