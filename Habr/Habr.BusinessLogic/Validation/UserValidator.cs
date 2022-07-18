@@ -41,7 +41,7 @@ public class UserValidator : AbstractValidator<RegistrationDTO>
             .WithMessage(ExceptionMessages.PasswordOverLimit);
 
         RuleFor(user => user.DateOfBirth)
-            .LessThan(Convert.ToDateTime(DateTime.UtcNow - new DateTime(6, 0, 0)))
+            .Must(date => date < DateTime.UtcNow.AddYears(-6))
             .WithMessage(ExceptionMessages.InvalidDateOfBirth);
     }
 }

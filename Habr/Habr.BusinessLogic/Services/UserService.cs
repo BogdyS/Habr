@@ -135,7 +135,16 @@ namespace Habr.BusinessLogic.Servises
             if (!validationResult.IsValid)
             {
                 var error = validationResult.Errors.First();
-                throw new InvalidDataException(error.ErrorMessage, (string) error.AttemptedValue);
+                string attemptedValue;
+                if (error.AttemptedValue is DateTime)
+                {
+                    attemptedValue = error.AttemptedValue.ToString();
+                }
+                else
+                {
+                    attemptedValue = (string) error.AttemptedValue;
+                }
+                throw new InvalidDataException(error.ErrorMessage, attemptedValue);
             }
 
             if (await IsEmailExistsAsync(newUser.Login))

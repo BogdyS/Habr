@@ -21,7 +21,8 @@ public class BirthdayTask : IEmailSender
         message.To.Add(new MailboxAddress("", context.EmailTo));
 
         using var client = new SmtpClient();
-        await client.ConnectAsync("smtp.mail.ru", 25, true);
+
+        await client.ConnectAsync("smtp.mail.ru", 25, false);
         await client.AuthenticateAsync(context.EmailFrom, context.Password);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);

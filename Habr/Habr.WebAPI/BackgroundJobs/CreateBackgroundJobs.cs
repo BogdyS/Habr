@@ -30,7 +30,7 @@ public static class CreateBackgroundJobs
         var day = user.DateOfBirth.Day;
         var month = user.DateOfBirth.Month;
 
-        string cronExpression = $"0 12 {day} {month} *"; //cron expression for repeating every year in current birthday
+        string cronExpression = $"6 18 {day} {month} *"; //cron expression for repeating every year in current birthday
 
        jobManager.AddOrUpdate($"birthdayEmail{user.Id}", () => sender.SendEmailAsync(context), cronExpression);
     }
