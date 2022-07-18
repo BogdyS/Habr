@@ -132,6 +132,9 @@
   <data name="InvalidCommentPostRelationship" xml:space="preserve">
     <value>Invalid relationship between comment and post</value>
   </data>
+  <data name="InvalidDateOfBirth" xml:space="preserve">
+    <value>Users can register from 6 years or later</value>
+  </data>
   <data name="InvalidEmail" xml:space="preserve">
     <value>Invalid Email</value>
   </data>

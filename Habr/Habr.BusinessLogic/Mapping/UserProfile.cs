@@ -24,7 +24,9 @@ public class UserProfile : Profile
             .ForMember(user => user.Name,
                 options => options.MapFrom(dto => dto.Name))
             .ForMember(user => user.Password,
-                options => options.MapFrom(dto => dto.Password));
+                options => options.MapFrom(dto => dto.Password))
+            .ForMember(user => user.DateOfBirth,
+                options => options.MapFrom(dto => dto.DateOfBirth));
 
         CreateMap<User, LoginDTO>()
             .ForMember(dto => dto.Login,

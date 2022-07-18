@@ -39,5 +39,9 @@ public class UserValidator : AbstractValidator<RegistrationDTO>
         RuleFor(user => user.Password)
             .MaximumLength(MaximumPasswordLength)
             .WithMessage(ExceptionMessages.PasswordOverLimit);
+
+        RuleFor(user => user.DateOfBirth)
+            .LessThan(Convert.ToDateTime(DateTime.UtcNow - new DateTime(6, 0, 0)))
+            .WithMessage(ExceptionMessages.InvalidDateOfBirth);
     }
 }
