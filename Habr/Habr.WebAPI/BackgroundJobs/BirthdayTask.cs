@@ -4,7 +4,6 @@ using Habr.Common.DTO.User;
 using MimeKit;
 using Habr.Common.Resourses;
 using Habr.DataAccess;
-using Habr.WebAPI.BackgroundJobs.Context;
 using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using MimeKit.Text;

@@ -1,6 +1,4 @@
-﻿using Habr.WebAPI.BackgroundJobs.Context;
-
-namespace Habr.WebAPI.BackgroundJobs;
+﻿namespace Habr.WebAPI.BackgroundJobs;
 
 public interface IEmailSender
 {

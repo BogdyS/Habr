@@ -2,7 +2,6 @@
 using AutoMapper.QueryableExtensions;
 using Habr.Common.DTO.User;
 using Habr.DataAccess;
-using Habr.WebAPI.BackgroundJobs.Context;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 
