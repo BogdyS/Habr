@@ -66,8 +66,6 @@ namespace Habr.WebAPI.Controllers
         {
             var user = await _userService.RegisterAsync(newUser);
 
-            CreateBackgroundJobs.CreateBirthdayEmailJob(jobManager, emailSender, _configuration, user);
-
             _logger.LogInformation($"Created new user with id = {user.Id}");
 
             return CreatedAtAction(nameof(LoginAsync),

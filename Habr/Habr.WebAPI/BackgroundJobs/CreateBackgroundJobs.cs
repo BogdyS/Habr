@@ -1,7 +1,10 @@
-﻿using Habr.Common.DTO.User;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Habr.Common.DTO.User;
 using Habr.DataAccess;
 using Habr.WebAPI.BackgroundJobs.Context;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 
 namespace Habr.WebAPI.BackgroundJobs;
 
@@ -10,28 +13,20 @@ public static class CreateBackgroundJobs
     public static void CreatePostRatingDailyJob(this WebApplication application)
     {
         using var scope = application.Services.CreateScope();
-        var recurringJobManager = scope.ServiceProvider.GetService<IRecurringJobManager>();
-        var ratingCalculator = scope.ServiceProvider.GetService<IPostRatingCalculator>();
+        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        var ratingCalculator = scope.ServiceProvider.GetRequiredService<IPostRatingCalculator>();
         recurringJobManager.AddOrUpdate("ratingCalculation",
             () => ratingCalculator!.CalculateAverageRating(),
             Cron.Daily(6, 0), TimeZoneInfo.Utc);
     }
 
-    public static void CreateBirthdayEmailJob(IRecurringJobManager jobManager, IEmailSender sender, IConfiguration configuration, UserDTO user)
+    public static void CreateBirthdayEmailJob(this WebApplication application)
     {
-        var context = new EmailContext()
-        {
-            Name = user.Name,
-            EmailTo = user.Email,
-            SendingTime = user.DateOfBirth,
-            Password = configuration["Email:Password"],
-            EmailFrom = configuration["Email:EmailAddress"]
-        };
-        var day = user.DateOfBirth.Day;
-        var month = user.DateOfBirth.Month;
+        using var scope = application.Services.CreateScope();
+        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
-        string cronExpression = $"0 12 {day} {month} *"; //cron expression for repeating every year in current birthday
-
-       jobManager.AddOrUpdate($"birthdayEmail{user.Id}", () => sender.SendEmailAsync(context), cronExpression);
+        recurringJobManager.AddOrUpdate("birthdayEmail", () => emailSender.SendEmailAsync(),
+            Cron.Daily(12, 0), TimeZoneInfo.Utc);
     }
 }
