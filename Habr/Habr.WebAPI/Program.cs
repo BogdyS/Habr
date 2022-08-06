@@ -53,6 +53,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 app.CreatePostRatingDailyJob();
+app.CreateBirthdayEmailJob();
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

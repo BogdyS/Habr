@@ -117,101 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AcessToCommentDenied" xml:space="preserve">
-    <value>User can't delete another user's comment</value>
-  </data>
-  <data name="AcessToPostDenied" xml:space="preserve">
-    <value>User can't update another user's post</value>
-  </data>
-  <data name="CommentNotFound" xml:space="preserve">
-    <value>Comment not found</value>
-  </data>
-  <data name="EmailTaken" xml:space="preserve">
-    <value>Email is already taken</value>
-  </data>
-  <data name="InvalidCommentPostRelationship" xml:space="preserve">
-    <value>Invalid relationship between comment and post</value>
-  </data>
-  <data name="InvalidDateOfBirth" xml:space="preserve">
-    <value>Users can register from 6 years or later</value>
-  </data>
-  <data name="InvalidEmail" xml:space="preserve">
-    <value>Invalid Email</value>
-  </data>
-  <data name="LoginError" xml:space="preserve">
-    <value>Wrong Email or password</value>
-  </data>
-  <data name="LoginOverLimit" xml:space="preserve">
-    <value>Login's length must be less than {0} symbols</value>
+  <data name="BirthdayText" xml:space="preserve">
+    <value>Happy birthday, {0}!</value>
     <comment>Interpolated string</comment>
   </data>
-  <data name="LoginRequired" xml:space="preserve">
-    <value>Login is required</value>
-  </data>
-  <data name="NameOverLimit" xml:space="preserve">
-    <value>Name's length must be less than {0} symbols</value>
+  <data name="BirthdayTitle" xml:space="preserve">
+    <value>Happy birthday, {0}!</value>
     <comment>Interpolated string</comment>
   </data>
-  <data name="NameRequired" xml:space="preserve">
-    <value>Name is required</value>
-  </data>
-  <data name="PageNumberNotExists" xml:space="preserve">
-    <value>Page number invalid</value>
-  </data>
-  <data name="PasswordNotSecure" xml:space="preserve">
-    <value>Password is not secure</value>
-  </data>
-  <data name="PasswordOverLimit" xml:space="preserve">
-    <value>Password's length must be less than {0} symbols</value>
-    <comment>Interpolated string</comment>
-  </data>
-  <data name="PasswordRequired" xml:space="preserve">
-    <value>Password is required</value>
-  </data>
-  <data name="PostAlreadyDraft" xml:space="preserve">
-    <value>Post is already draft</value>
-  </data>
-  <data name="PostNotDraft" xml:space="preserve">
-    <value>Post isn't draft</value>
-  </data>
-  <data name="PostNotFound" xml:space="preserve">
-    <value>Post not found</value>
-  </data>
-  <data name="RateTooBig" xml:space="preserve">
-    <value>Maximum rating is {0} points</value>
-    <comment>Interpolated string</comment>
-  </data>
-  <data name="RateTooSmall" xml:space="preserve">
-    <value>Minimum rating is {0} points</value>
-    <comment>Interpolated string</comment>
-  </data>
-  <data name="RefreshTokenInvalid" xml:space="preserve">
-    <value>Refresh token is invalid</value>
-  </data>
-  <data name="RemovingPostWithComments" xml:space="preserve">
-    <value>User can't remove post with comments to drafts</value>
-  </data>
-  <data name="TextOverLimit" xml:space="preserve">
-    <value>The Text must be less than {0} symbols</value>
-    <comment>Interpolated string</comment>
-  </data>
-  <data name="TextRequired" xml:space="preserve">
-    <value>The Text is required</value>
-  </data>
-  <data name="TitleOverLimit" xml:space="preserve">
-    <value>The Title must be less than {0} symbols</value>
-    <comment>Interpolated string</comment>
-  </data>
-  <data name="TitleRequired" xml:space="preserve">
-    <value>The Title is required</value>
-  </data>
-  <data name="UpdatingNotDraftPost" xml:space="preserve">
-    <value>User can update only drafts</value>
-  </data>
-  <data name="UserNotFound" xml:space="preserve">
-    <value>User not found</value>
-  </data>
-  <data name="UserWithEmailNotFound" xml:space="preserve">
-    <value>Email is incorrect</value>
+  <data name="Name" xml:space="preserve">
+    <value>Habr Team</value>
   </data>
 </root>

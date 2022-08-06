@@ -2,6 +2,8 @@
 using Habr.BusinessLogic.Interfaces;
 using Habr.Common.DTO;
 using Habr.Common.DTO.User;
+using Habr.WebAPI.BackgroundJobs;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,10 +19,12 @@ namespace Habr.WebAPI.Controllers
     {
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        private readonly IConfiguration _configuration;
+        public UserController(IUserService userService, ILogger<UserController> logger, IConfiguration configuration)
         {
             _userService = userService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpGet("users/{id:int}")]
@@ -57,7 +61,8 @@ namespace Habr.WebAPI.Controllers
         }
 
         [HttpPost("users/registration")]
-        public async Task<IActionResult> RegistrationAsync([FromBody] RegistrationDTO newUser)
+        public async Task<IActionResult> RegistrationAsync([FromBody] RegistrationDTO newUser,
+            [FromServices] IRecurringJobManager jobManager, [FromServices] IEmailSender emailSender)
         {
             var user = await _userService.RegisterAsync(newUser);
 

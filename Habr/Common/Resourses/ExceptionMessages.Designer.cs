@@ -106,6 +106,15 @@ namespace Habr.Common.Resourses {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Users can register from 6 years or later.
+        /// </summary>
+        public static string InvalidDateOfBirth {
+            get {
+                return ResourceManager.GetString("InvalidDateOfBirth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Invalid Email.
         /// </summary>
         public static string InvalidEmail {

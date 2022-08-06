@@ -28,6 +28,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
         builder.Property(x => x.Role)
             .IsRequired()
             .HasDefaultValue(RolesEnum.User);
+        builder.Property(x => x.DateOfBirth)
+            .IsRequired()
+            .HasColumnType("date")
+            .HasDefaultValue(new DateTime(2000, 1, 1));
 
         builder.HasMany(u => u.Rates)
             .WithOne(r => r.User)

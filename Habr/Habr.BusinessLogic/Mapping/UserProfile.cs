@@ -24,12 +24,20 @@ public class UserProfile : Profile
             .ForMember(user => user.Name,
                 options => options.MapFrom(dto => dto.Name))
             .ForMember(user => user.Password,
-                options => options.MapFrom(dto => dto.Password));
+                options => options.MapFrom(dto => dto.Password))
+            .ForMember(user => user.DateOfBirth,
+                options => options.MapFrom(dto => dto.DateOfBirth));
 
         CreateMap<User, LoginDTO>()
             .ForMember(dto => dto.Login,
                 options => options.MapFrom(user => user.Email))
             .ForMember(dto => dto.Password,
                 options => options.MapFrom(user => user.Password));
+
+        CreateMap<User, BirthdayDTO>()
+            .ForMember(dto => dto.Name,
+                options => options.MapFrom(user => user.Name))
+            .ForMember(dto => dto.Email,
+                options => options.MapFrom(user => user.Email));
     }
 }
