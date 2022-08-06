@@ -1,4 +1,5 @@
-﻿using Habr.DataAccess.Entities;
+﻿using Habr.Common;
+using Habr.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,7 +15,26 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
             .HasMaxLength(60)
             .IsRequired();
         builder.Property(x => x.Email)
-            .HasMaxLength(264)
+            .HasMaxLength(200)
             .IsRequired();
+        builder.HasIndex(x => x.Email)
+            .IsUnique();
+        builder.Property(x => x.Password)
+            .IsRequired();
+        builder.Property(x => x.RefreshToken)
+            .IsRequired(false);
+        builder.Property(x => x.RefreshTokenActiveTo)
+            .IsRequired(false);
+        builder.Property(x => x.Role)
+            .IsRequired()
+            .HasDefaultValue(RolesEnum.User);
+        builder.Property(x => x.DateOfBirth)
+            .IsRequired()
+            .HasColumnType("date")
+            .HasDefaultValue(new DateTime(2000, 1, 1));
+
+        builder.HasMany(u => u.Rates)
+            .WithOne(r => r.User)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

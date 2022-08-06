@@ -13,18 +13,32 @@ namespace Habr.DataAccess.Configurations
                 .ValueGeneratedOnAdd();
             builder.Property(x => x.Title)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(200);
             builder.Property(x => x.Text)
                 .IsRequired()
-                .HasMaxLength(500);
+                .HasMaxLength(2000);
             builder.Property(x => x.Created)
+                .IsRequired();
+            builder.Property(x => x.Updated)
+                .IsRequired();
+            builder.Property(x => x.Posted)
+                .IsRequired();
+            builder.Property(x => x.IsDraft)
+                .IsRequired();
+            builder.Property(x => x.AverageRating)
+                .HasPrecision(3, 2)
+                .HasDefaultValue(0)
                 .IsRequired();
 
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Posts)
                 .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.ClientCascade)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+
+            builder.HasMany(x => x.Rates)
+                .WithOne(r => r.Post)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

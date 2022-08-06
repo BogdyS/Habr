@@ -1,17 +1,13 @@
-﻿using Habr.DataAccess;
+﻿using Habr.BusinessLogic.Servises;
 using Habr.DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Habr.ConsoleApp
 {
     class Program
     {
-        async static Task Main(string[] args)
+        static async Task Main(string[] args)
         {
-            using (var context = new DataContext())
-            {
-                await context.Database.MigrateAsync();
-            }
+
         }
     }
 }

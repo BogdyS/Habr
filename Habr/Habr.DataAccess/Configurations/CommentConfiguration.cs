@@ -22,19 +22,19 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.Property(x => x.Created)
             .IsRequired();
 
-        builder.HasOne(x => x.User)
-            .WithMany(x => x.Comments)
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.ClientCascade)
-            .IsRequired();
         builder.HasOne(x => x.ParentComment)
             .WithMany(x => x.Comments)
             .HasForeignKey(x => x.ParentCommentId)
-            .OnDelete(DeleteBehavior.ClientCascade);
+            .OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne(x => x.User)
+            .WithMany(x => x.Comments)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired();
         builder.HasOne(x => x.Post)
             .WithMany(x => x.Comments)
             .HasForeignKey(x => x.PostId)
-            .OnDelete(DeleteBehavior.ClientCascade)
+            .OnDelete(DeleteBehavior.NoAction)
             .IsRequired();
     }
 }
